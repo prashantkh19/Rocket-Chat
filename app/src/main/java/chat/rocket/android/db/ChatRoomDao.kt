@@ -27,6 +27,13 @@ abstract class ChatRoomDao : BaseDao<ChatRoomEntity> {
     abstract fun getSync(id: String): ChatRoom?
 
     @Transaction
+    @Query("""
+        $BASE_QUERY
+        WHERE chatrooms.name = :name
+        """)
+    abstract fun getSyncByName(name: String): ChatRoom?
+
+    @Transaction
     @Query("$BASE_QUERY $FILTER_NOT_OPENED")
     abstract fun getAllSync(): List<ChatRoom>
 

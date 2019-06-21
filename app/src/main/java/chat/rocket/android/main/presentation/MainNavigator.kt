@@ -1,10 +1,9 @@
 package chat.rocket.android.main.presentation
 
 import chat.rocket.android.R
-import chat.rocket.android.authentication.ui.newServerIntent
+//import chat.rocket.android.authentication.ui.newServerIntent
 import chat.rocket.android.chatroom.ui.chatRoomIntent
-import chat.rocket.android.chatrooms.ui.TAG_CHAT_ROOMS_FRAGMENT
-import chat.rocket.android.createchannel.ui.TAG_CREATE_CHANNEL_FRAGMENT
+//import chat.rocket.android.chatrooms.ui.TAG_CHAT_ROOMS_FRAGMENT
 import chat.rocket.android.directory.ui.TAG_DIRECTORY_FRAGMENT
 import chat.rocket.android.main.ui.MainActivity
 import chat.rocket.android.profile.ui.TAG_PROFILE_FRAGMENT
@@ -18,9 +17,9 @@ import chat.rocket.android.webview.ui.webViewIntent
 class MainNavigator(internal val activity: MainActivity) {
 
     fun toChatList(chatRoomId: String? = null) {
-        activity.addFragment(TAG_CHAT_ROOMS_FRAGMENT, R.id.fragment_container) {
-            chat.rocket.android.chatrooms.ui.newInstance(chatRoomId)
-        }
+//        activity.addFragment(TAG_CHAT_ROOMS_FRAGMENT, R.id.fragment_container) {
+//            chat.rocket.android.chatrooms.ui.newInstance(chatRoomId)
+//        }
     }
 
     fun toSettings() {
@@ -32,12 +31,6 @@ class MainNavigator(internal val activity: MainActivity) {
     fun toDirectory() {
         activity.addFragmentBackStack(TAG_DIRECTORY_FRAGMENT, R.id.fragment_container) {
             chat.rocket.android.directory.ui.newInstance()
-        }
-    }
-
-    fun toCreateChannel() {
-        activity.addFragmentBackStack(TAG_CREATE_CHANNEL_FRAGMENT, R.id.fragment_container) {
-            chat.rocket.android.createchannel.ui.newInstance()
         }
     }
 
@@ -98,6 +91,6 @@ class MainNavigator(internal val activity: MainActivity) {
     }
 
     fun toServerScreen() {
-        activity.startActivity(activity.newServerIntent())
+//        activity.startActivity(activity.newServerIntent())
     }
 }

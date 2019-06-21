@@ -112,6 +112,11 @@ class DatabaseManager(val context: Application, val serverUrl: String, val token
             chatRoomDao().getSync(id)
         }
     }
+    suspend fun getRoomByName(name: String) = withContext(dbManagerContext) {
+        retryDB("getRoom($name)") {
+            chatRoomDao().getSyncByName(name)
+        }
+    }
 
     suspend fun insertOrReplaceRoom(chatRoomEntity: ChatRoomEntity) {
         retryDB("insertOrReplace($chatRoomEntity)") {

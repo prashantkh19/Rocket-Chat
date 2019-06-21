@@ -58,6 +58,7 @@ class MainActivity : AppCompatActivity(), HasActivityInjector,
     override fun supportFragmentInjector(): AndroidInjector<Fragment> =
         fragmentDispatchingAndroidInjector
 
+    //locale
     override fun updateLanguage(language: String, country: String?) {
         val locale: Locale = if (country != null) {
             Locale(language, country)
@@ -76,10 +77,11 @@ class MainActivity : AppCompatActivity(), HasActivityInjector,
         }
 
         // TODO We need to check out a better way to use createConfigurationContext
-        // instead of updateConfiguration here since it is deprecated.
+        //  instead of updateConfiguration here since it is deprecated.
         resources.updateConfiguration(config, resources.displayMetrics)
     }
 
     private fun clearAppNotifications() =
         (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).cancelAll()
+
 }

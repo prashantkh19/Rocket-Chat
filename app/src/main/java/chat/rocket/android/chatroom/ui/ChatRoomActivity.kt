@@ -130,8 +130,8 @@ class ChatRoomActivity : AppCompatActivity(), HasSupportFragmentInjector {
     private fun setupToolbar() {
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayShowTitleEnabled(false)
-        toolbar.setNavigationIcon(R.drawable.ic_arrow_back_white_24dp)
-        toolbar.setNavigationOnClickListener { finishActivity() }
+//        toolbar.setNavigationIcon(R.drawable.ic_arrow_back_white_24dp)
+//        toolbar.setNavigationOnClickListener { finishActivity() }
     }
 
     fun setupToolbarTitle(title: String) {
