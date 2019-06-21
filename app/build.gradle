@@ -2,6 +2,7 @@ def taskRequests = getGradle().getStartParameter().getTaskRequests().toString()
 def isPlay = !(taskRequests.contains("Foss") || taskRequests.contains("foss"))
 
 apply plugin: 'com.android.application'
+//apply plugin: 'com.android.library'
 if (isPlay) {
     apply plugin: 'io.fabric'
 }
@@ -18,8 +19,8 @@ android {
         applicationId "chat.rocket.android"
         minSdkVersion versions.minSdk
         targetSdkVersion versions.targetSdk
-        versionCode 2070
-        versionName "3.4.2"
+        versionCode 2067
+        versionName "3.4.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
 
@@ -193,15 +194,15 @@ androidExtensions {
 // FIXME - build and install the sdk into the app/libs directory
 // We were having some issues with the kapt generated files from the sdk when importing as a module
 
-def sdk_location = project.properties['sdk_location'] ?: ""
-task compileSdk(type: Exec) {
-    if (System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')) {
-        commandLine 'cmd', '/c', 'build-sdk.sh', sdk_location
-    } else {
-        commandLine './build-sdk.sh', sdk_location
-    }
-}
-preBuild.dependsOn compileSdk
+//def sdk_location = project.properties['sdk_location'] ?: ""
+//task compileSdk(type: Exec) {
+//    if (System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')) {
+//        commandLine 'cmd', '/c', 'build-sdk.sh', sdk_location
+//    } else {
+//        commandLine './build-sdk.sh', sdk_location
+//    }
+//}
+//preBuild.dependsOn compileSdk
 if (isPlay) {
     apply plugin: 'com.google.gms.google-services'
 }

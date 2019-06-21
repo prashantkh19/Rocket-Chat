@@ -2,6 +2,7 @@ package chat.rocket.android.authentication.di
 
 import androidx.lifecycle.LifecycleOwner
 import chat.rocket.android.authentication.presentation.AuthenticationNavigator
+import chat.rocket.android.authentication.presentation.AuthenticationView
 import chat.rocket.android.authentication.ui.AuthenticationActivity
 import chat.rocket.android.core.lifecycle.CancelStrategy
 import chat.rocket.android.dagger.scope.PerActivity
@@ -15,7 +16,7 @@ class AuthenticationModule {
     @Provides
     @PerActivity
     fun provideAuthenticationNavigator(activity: AuthenticationActivity) =
-        AuthenticationNavigator(activity)
+            AuthenticationNavigator(activity)
 
     @Provides
     @PerActivity
@@ -28,5 +29,11 @@ class AuthenticationModule {
     @Provides
     @PerActivity
     fun provideCancelStrategy(owner: LifecycleOwner, jobs: Job): CancelStrategy =
-        CancelStrategy(owner, jobs)
+            CancelStrategy(owner, jobs)
+
+    @Provides
+    @PerActivity
+    fun providesAuthenticationView(activity: AuthenticationActivity) : AuthenticationView{
+        return activity
+    }
 }
