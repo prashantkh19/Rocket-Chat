@@ -35,5 +35,7 @@ interface AppComponent {
 
     fun inject(app: RocketChatApplication)
 
+    fun inject(app: Application)
+
     fun inject(service: MessageService)
 }
