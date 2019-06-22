@@ -194,7 +194,6 @@ class RocketChatApplication : Application(), HasActivityInjector, HasServiceInje
                                 isDefault = true
                         ))
                     }
-
                     EmojiRepository.load(this@RocketChatApplication, customEmojis = customEmojiList)
                 } catch (ex: RocketChatException) {
                     Timber.e(ex)

@@ -16,7 +16,7 @@ android {
     buildToolsVersion versions.buildTools
 
     defaultConfig {
-        applicationId "chat.rocket.android"
+//        applicationId "chat.rocket.android"
         minSdkVersion versions.minSdk
         targetSdkVersion versions.targetSdk
         versionCode 2067
@@ -74,7 +74,7 @@ android {
             buildConfigField "String", "REQUIRED_SERVER_VERSION", '"0.62.0"'
             buildConfigField "String", "RECOMMENDED_SERVER_VERSION", '"0.64.2"'
             signingConfig signingConfigs.debug
-            applicationIdSuffix ".dev"
+//            applicationIdSuffix ".dev"
         }
     }
 
@@ -203,6 +203,6 @@ androidExtensions {
 //    }
 //}
 //preBuild.dependsOn compileSdk
-if (isPlay) {
-    apply plugin: 'com.google.gms.google-services'
-}
+//if (isPlay) {
+//    apply plugin: 'com.google.gms.google-services'
+//}

@@ -296,9 +296,9 @@ class AuthenticationPresenter @Inject constructor(
 
         launchUI(strategy) {
             try {
-                refreshChatRooms{
-                    loadChatRoom(chat.rocket.android.util.roomName)
-                }
+                refreshChatRooms()
+                loadChatRoom(chat.rocket.android.util.roomName)
+
             } catch (ex: Exception) {
                 Timber.e(ex, "Error refreshing channels")
                 view.showGenericErrorMessage()
@@ -306,32 +306,33 @@ class AuthenticationPresenter @Inject constructor(
         }
     }
 
-    private suspend fun refreshChatRooms(block: () -> Unit) {
+    private suspend fun refreshChatRooms() {
         val rooms = retryIO("fetch chatRooms", times = 10,
                 initialDelay = 200, maxDelay = 2000) {
             client.chatRooms().update
         }
         Timber.d("Refreshing rooms: $rooms")
         dbManager.processRooms(rooms)
-        block()
     }
 
     fun loadChatRoom(roomId: String) {
-        launchUI(strategy) {
-            try {
-                val room = dbManager.getRoomByName(roomId)
-                if (room != null) {
-                    loadChatRoom(room.chatRoom, true)
-                } else {
-                    //create new one
-                    Timber.e("CREATE NEW CHANNEL")
-                    view.showMessage("Need to create a new channel")
-                    createChannel(roomTypeOf(RoomType.PRIVATE_GROUP),
-                            chat.rocket.android.util.roomName, ArrayList(),false)
+        synchronized(this) {
+            launchUI(strategy) {
+                try {
+                    val room = dbManager.getRoomByName(roomId)
+                    if (room != null) {
+                        loadChatRoom(room.chatRoom, true)
+                    } else {
+                        //create new one
+                        Timber.e("CREATE NEW CHANNEL")
+                        view.showMessage("Need to create a new channel")
+                        createChannel(roomTypeOf(RoomType.PRIVATE_GROUP),
+                                chat.rocket.android.util.roomName, ArrayList(), false)
+                    }
+                } catch (ex: Exception) {
+                    Timber.e(ex, "Error loading channel")
+                    view.showGenericErrorMessage()
                 }
-            } catch (ex: Exception) {
-                Timber.e(ex, "Error loading channel")
-                view.showGenericErrorMessage()
             }
         }
     }
