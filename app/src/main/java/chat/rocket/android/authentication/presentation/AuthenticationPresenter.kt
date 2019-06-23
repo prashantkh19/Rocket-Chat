@@ -24,6 +24,8 @@ import chat.rocket.core.RocketChatClient
 import chat.rocket.core.internal.rest.*
 import chat.rocket.core.model.Myself
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
@@ -294,11 +296,11 @@ class AuthenticationPresenter @Inject constructor(
 
         view.showMessage("Going to Chat Room")
 
-        launchUI(strategy) {
+        GlobalScope.launch {
             try {
-                refreshChatRooms{
-                    loadChatRoom(chat.rocket.android.util.roomName)
-                }
+                refreshChatRooms()
+                Timber.d("loading chat rooms")
+                loadChatRoom(chat.rocket.android.util.roomName)
             } catch (ex: Exception) {
                 Timber.e(ex, "Error refreshing channels")
                 view.showGenericErrorMessage()
@@ -306,14 +308,14 @@ class AuthenticationPresenter @Inject constructor(
         }
     }
 
-    private suspend fun refreshChatRooms(block: () -> Unit) {
+    private suspend fun refreshChatRooms() {
         val rooms = retryIO("fetch chatRooms", times = 10,
                 initialDelay = 200, maxDelay = 2000) {
             client.chatRooms().update
         }
         Timber.d("Refreshing rooms: $rooms")
-        dbManager.processRooms(rooms)
-        block()
+        dbManager.processRoomsWithSameCoroutine(rooms)
+        Timber.d("Done Processing rooms: $rooms")
     }
 
     fun loadChatRoom(roomId: String) {
