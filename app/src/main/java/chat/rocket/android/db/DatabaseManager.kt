@@ -3,46 +3,19 @@ package chat.rocket.android.db
 import android.app.Application
 import androidx.core.net.toUri
 import chat.rocket.android.R
-import chat.rocket.android.db.model.BaseMessageEntity
-import chat.rocket.android.db.model.BaseUserEntity
-import chat.rocket.android.db.model.ChatRoomEntity
-import chat.rocket.android.db.model.MessageChannels
-import chat.rocket.android.db.model.MessageEntity
-import chat.rocket.android.db.model.MessageFavoritesRelation
-import chat.rocket.android.db.model.MessageMentionsRelation
-import chat.rocket.android.db.model.MessagesSync
-import chat.rocket.android.db.model.ReactionEntity
-import chat.rocket.android.db.model.UrlEntity
-import chat.rocket.android.db.model.UserEntity
+import chat.rocket.android.db.model.*
 import chat.rocket.android.db.model.UserStatus
-import chat.rocket.android.db.model.asEntity
-import chat.rocket.android.util.extensions.avatarUrl
-import chat.rocket.android.util.extensions.exhaustive
-import chat.rocket.android.util.extensions.removeTrailingSlash
-import chat.rocket.android.util.extensions.toEntity
-import chat.rocket.android.util.extensions.userId
+import chat.rocket.android.util.extensions.*
 import chat.rocket.android.util.retryDB
-import chat.rocket.common.model.BaseRoom
-import chat.rocket.common.model.RoomType
-import chat.rocket.common.model.SimpleUser
-import chat.rocket.common.model.Token
-import chat.rocket.common.model.User
+import chat.rocket.common.model.*
 import chat.rocket.core.internal.model.Subscription
 import chat.rocket.core.internal.realtime.socket.model.StreamMessage
 import chat.rocket.core.internal.realtime.socket.model.Type
+import chat.rocket.core.model.*
 import chat.rocket.core.model.ChatRoom
-import chat.rocket.core.model.LastMessage
-import chat.rocket.core.model.Message
-import chat.rocket.core.model.Myself
-import chat.rocket.core.model.Room
-import chat.rocket.core.model.userId
 import com.facebook.drawee.backends.pipeline.Fresco
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.newSingleThreadContext
-import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.util.HashSet
 import kotlin.collections.ArrayList
@@ -111,6 +84,11 @@ class DatabaseManager(val context: Application, val serverUrl: String, val token
     suspend fun getRoom(id: String) = withContext(dbManagerContext) {
         retryDB("getRoom($id)") {
             chatRoomDao().getSync(id)
+        }
+    }
+    suspend fun getRoomByName(name: String) = withContext(dbManagerContext) {
+        retryDB("getRoom($name)") {
+            chatRoomDao().getSyncByName(name)
         }
     }
 
@@ -217,6 +195,11 @@ class DatabaseManager(val context: Application, val serverUrl: String, val token
             val entities = rooms.map { mapChatRoom(it) }
             sendOperation(Operation.CleanInsertRooms(entities))
         }
+    }
+
+    suspend fun processRoomsWithSameCoroutine(rooms: List<ChatRoom>) {
+        val entities = rooms.map { mapChatRoom(it) }
+        sendOperation(Operation.CleanInsertRooms(entities))
     }
 
     fun processMessagesBatch(messages: List<Message>): Job = GlobalScope.launch(dbManagerContext) {
@@ -401,8 +384,8 @@ class DatabaseManager(val context: Application, val serverUrl: String, val token
         }
     }
 
-    private fun mapLastMessageText(message: LastMessage?): String? = message?.let { lastMessage ->
-        if (lastMessage.message?.isEmpty() == true && lastMessage.attachments?.isNotEmpty() == true) {
+    private fun mapLastMessageText(message: Message?): String? = message?.let { lastMessage ->
+        if (lastMessage.message.isEmpty() && lastMessage.attachments?.isNotEmpty() == true) {
             context.getString(R.string.msg_sent_attachment)
         } else {
             lastMessage.message
