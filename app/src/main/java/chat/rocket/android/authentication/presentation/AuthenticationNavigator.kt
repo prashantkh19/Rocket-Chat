@@ -1,10 +1,10 @@
 package chat.rocket.android.authentication.presentation
 
+import androidx.appcompat.app.AppCompatActivity
 import chat.rocket.android.R
-import chat.rocket.android.authentication.ui.AuthenticationActivity
 import chat.rocket.android.chatroom.ui.chatRoomIntent
 
-class AuthenticationNavigator(internal val activity: AuthenticationActivity) {
+class AuthenticationNavigator(internal val activity: AppCompatActivity) {
 
     fun toChatRoom(
             chatRoomId: String,

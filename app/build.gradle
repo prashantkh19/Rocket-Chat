@@ -1,8 +1,8 @@
 def taskRequests = getGradle().getStartParameter().getTaskRequests().toString()
 def isPlay = !(taskRequests.contains("Foss") || taskRequests.contains("foss"))
 
-apply plugin: 'com.android.application'
-//apply plugin: 'com.android.library'
+//apply plugin: 'com.android.application'
+apply plugin: 'com.android.library'
 if (isPlay) {
     apply plugin: 'io.fabric'
 }
@@ -103,18 +103,18 @@ android {
 }
 
 dependencies {
-    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    api fileTree(include: ['*.jar'], dir: 'libs')
 
-    implementation project(':player')
-    implementation project(':emoji')
-    implementation project(':draw')
-    implementation project(':util')
-    implementation project(':core')
-    implementation project(':suggestions')
+    api project(':player')
+    api project(':emoji')
+    api project(':draw')
+    api project(':util')
+    api project(':core')
+    api project(':suggestions')
 
-    implementation libraries.kotlin
-    implementation libraries.coroutinesCore
-    implementation libraries.coroutinesAndroid
+    api libraries.kotlin
+    api libraries.coroutinesCore
+    api libraries.coroutinesAndroid
 
     implementation libraries.appCompat
     implementation libraries.recyclerview
@@ -145,7 +145,7 @@ dependencies {
     implementation libraries.rxKotlin
     implementation libraries.rxAndroid
 
-    implementation libraries.moshi
+    api libraries.moshi
     implementation libraries.okhttp
     implementation libraries.okhttpLogger
 
