@@ -10,8 +10,6 @@ import com.example.sample.R
 
 class HomeFragment : Fragment() {
 
-
-
     companion object {
         fun newInstance() = HomeFragment()
     }
@@ -27,7 +25,7 @@ class HomeFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
         viewModel = ViewModelProviders.of(this).get(HomeViewModel::class.java)
         // TODO: Use the ViewModel
-          startActivity(Intent())
+//          startActivity(Intent())
     }
 
 }

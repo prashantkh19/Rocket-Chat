@@ -65,6 +65,12 @@ class AuthenticationPresenter @Inject constructor(
     private lateinit var client: RocketChatClient
     private lateinit var settings: PublicSettings
 
+    var auth_state = STATE_LOADING
+
+    fun setState(auth_state: String) {
+        this.auth_state = auth_state
+    }
+
     fun loadCredentials(callback: (isAuthenticated: Boolean) -> Unit) {
         launchUI(strategy) {
             val currentServer = getCurrentServerInteractor.get()
@@ -294,13 +300,13 @@ class AuthenticationPresenter @Inject constructor(
         setupConnection(currentServer)
         getDbManager()
 
-        view.showMessage("Going to Chat Room")
+//        view.showMessage("Going to Chat Room")
 
         GlobalScope.launch {
             try {
                 refreshChatRooms()
                 Timber.d("loading chat rooms")
-                loadChatRoom(chat.rocket.android.util.roomName)
+                checkChatRoom(chat.rocket.android.util.roomName)
             } catch (ex: Exception) {
                 Timber.e(ex, "Error refreshing channels")
                 view.showGenericErrorMessage()
@@ -318,16 +324,36 @@ class AuthenticationPresenter @Inject constructor(
         Timber.d("Done Processing rooms: $rooms")
     }
 
-    fun loadChatRoom(roomId: String) {
+    fun checkChatRoom(roomId: String) {
         launchUI(strategy) {
             try {
                 val room = dbManager.getRoomByName(roomId)
+                if (room != null) {
+                    setState(STATE_READY)
+//                    loadChatRoom(room.chatRoom, true)
+                } else {
+                    //create new one
+                    Timber.e("CREATE NEW CHANNEL")
+                    createChannel(roomTypeOf(RoomType.PRIVATE_GROUP),
+                            chat.rocket.android.util.roomName, ArrayList(), false)
+                }
+            } catch (ex: Exception) {
+                Timber.e(ex, "Error loading channel")
+                view.showGenericErrorMessage()
+            }
+        }
+    }
+
+
+    fun loadChatRoom() {
+        launchUI(strategy) {
+            try {
+                val room = dbManager.getRoomByName(chat.rocket.android.util.roomName)
                 if (room != null) {
                     loadChatRoom(room.chatRoom, true)
                 } else {
                     //create new one
                     Timber.e("CREATE NEW CHANNEL")
-                    view.showMessage("Need to create a new channel")
                     createChannel(roomTypeOf(RoomType.PRIVATE_GROUP),
                             chat.rocket.android.util.roomName, ArrayList(),false)
                 }
@@ -409,5 +435,11 @@ class AuthenticationPresenter @Inject constructor(
                 view.hideLoading()
             }
         }
+    }
+
+    companion object {
+        const val STATE_LOADING = "state_loading"
+        const val STATE_READY = "state_ready"
+        const val STATE_ERROR = "state_error"
     }
 }
