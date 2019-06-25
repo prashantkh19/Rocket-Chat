@@ -3,26 +3,51 @@ package com.example.sample
 import android.content.Intent
 import android.os.Bundle
 import androidx.core.view.isVisible
-import chat.rocket.android.authentication.Rocket
+import chat.rocket.android.authentication.RocketChat
+import chat.rocket.android.authentication.STATE_READY
 import chat.rocket.android.authentication.TemplateActivity
-import chat.rocket.android.authentication.presentation.AuthenticationPresenter
 import chat.rocket.android.helper.saveCredentials
 import chat.rocket.android.util.extensions.showToast
 import kotlinx.android.synthetic.main.home_activity.*
 
+
+const val protocol = "http://"
+
+const val serverDomain = "192.168.43.169:3000"
+
+const val name = "Prashant Khandelwal"
+
+const val userName = "prkh"
+
+const val userEmail = "prkh@gmail.com"
+
+const val userPassword = "login"
+
+const val roomName = "prkh"
+
 class HomeActivity : TemplateActivity() {
 
-    lateinit var rocket: Rocket
+    lateinit var rocketChat: RocketChat
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.home_activity)
-        rocket = Rocket(this)
-        rocket.loadCredentials()
+
+        rocketChat = RocketChat(this,
+                protocol,
+                serverDomain,
+                name,
+                userName,
+                userEmail,
+                userPassword,
+                roomName)
+
+        rocketChat.loadCredentials()
+
         button_support.setOnClickListener {
-            if (rocket.presenter.auth_state == AuthenticationPresenter.STATE_READY) {
+            if (rocketChat.getState() == STATE_READY) {
                 showMessage("Going to Chat Room")
-                rocket.presenter.loadChatRoom()
+                rocketChat.loadChatRoom()
             } else {
                 showMessage("Not Ready")
             }
@@ -68,7 +93,7 @@ class HomeActivity : TemplateActivity() {
     }
 
     override fun versionOk() {
-        rocket.performConnect()
+        rocketChat.performConnect()
     }
 
     override fun saveSmartLockCredentials(usernameOrEmail: String, password: String) {

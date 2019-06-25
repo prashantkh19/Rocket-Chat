@@ -26,22 +26,22 @@ android {
         }
     }
 
-    // Since we are using the util module here, we need to declare the same flavorDimensions and
-    // productFlavors from there.
+//     Since we are using the util module here, we need to declare the same flavorDimensions and
+//     productFlavors from there.
 
-    flavorDimensions "type"
-
-    productFlavors {
-        // includes proprietary libs
-        play {
-            dimension "type"
-        }
-
-        // only foss
-        foss {
-            dimension "type"
-        }
-    }
+//    flavorDimensions "type"
+//
+//    productFlavors {
+//        // includes proprietary libs
+//        play {
+//            dimension "type"
+//        }
+//
+//        // only foss
+//        foss {
+//            dimension "type"
+//        }
+//    }
 }
 
 dependencies {

@@ -3,9 +3,9 @@ def isPlay = !(taskRequests.contains("Foss") || taskRequests.contains("foss"))
 
 //apply plugin: 'com.android.application'
 apply plugin: 'com.android.library'
-if (isPlay) {
-    apply plugin: 'io.fabric'
-}
+//if (isPlay) {
+//    apply plugin: 'io.fabric'
+//}
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
@@ -16,7 +16,7 @@ android {
     buildToolsVersion versions.buildTools
 
     defaultConfig {
-//        applicationId "chat.rocket.android"
+//        applicationId "chat.rocketChat.android"
         minSdkVersion versions.minSdk
         targetSdkVersion versions.targetSdk
         versionCode 2067
@@ -47,7 +47,7 @@ android {
 
     signingConfigs {
         release {
-            storeFile project.rootProject.file('Rocket.jks').getCanonicalFile()
+            storeFile project.rootProject.file('RocketChat.jks').getCanonicalFile()
             storePassword System.getenv("KEYSTORE_PASSWORD")
             keyAlias System.getenv("KEY_ALIAS")
             keyPassword System.getenv("KEY_PASSWORD")
@@ -69,12 +69,12 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
-
+//
         debug {
             buildConfigField "String", "REQUIRED_SERVER_VERSION", '"0.62.0"'
             buildConfigField "String", "RECOMMENDED_SERVER_VERSION", '"0.64.2"'
             signingConfig signingConfigs.debug
-//            applicationIdSuffix ".dev"
+////            applicationIdSuffix ".dev"
         }
     }
 
@@ -103,18 +103,18 @@ android {
 }
 
 dependencies {
-    api fileTree(include: ['*.jar'], dir: 'libs')
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
 
-    api project(':player')
-    api project(':emoji')
-    api project(':draw')
-    api project(':util')
-    api project(':core')
-    api project(':suggestions')
+    implementation project(':player')
+    implementation project(':emoji')
+    implementation project(':draw')
+    implementation project(':util')
+    implementation project(':core')
+    implementation project(':suggestions')
 
-    api libraries.kotlin
-    api libraries.coroutinesCore
-    api libraries.coroutinesAndroid
+    implementation libraries.kotlin
+    implementation libraries.coroutinesCore
+    implementation libraries.coroutinesAndroid
 
     implementation libraries.appCompat
     implementation libraries.recyclerview
@@ -174,7 +174,7 @@ dependencies {
 
     implementation 'com.google.code.findbugs:jsr305:3.0.2'
 
-    // Proprietary libraries
+//     Proprietary libraries
     playImplementation libraries.fcm
     playImplementation libraries.firebaseAnalytics
     playImplementation libraries.playServicesAuth

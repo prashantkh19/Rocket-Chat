@@ -3,6 +3,9 @@ package chat.rocket.android.authentication.presentation
 import chat.rocket.android.R
 import chat.rocket.android.analytics.AnalyticsManager
 import chat.rocket.android.analytics.event.AuthenticationEvent
+import chat.rocket.android.authentication.STATE_ERROR
+import chat.rocket.android.authentication.STATE_LOADING
+import chat.rocket.android.authentication.STATE_READY
 import chat.rocket.android.core.behaviours.showMessage
 import chat.rocket.android.core.lifecycle.CancelStrategy
 import chat.rocket.android.db.DatabaseManager
@@ -49,7 +52,7 @@ class AuthenticationPresenter @Inject constructor(
         private val analyticsManager: AnalyticsManager,
         private val dbManagerFactory: DatabaseManagerFactory? = null,
         private val userHelper: UserHelper
-        ) : CheckServerPresenter(
+) : CheckServerPresenter(
         strategy = strategy,
         factory = factory,
         versionCheckView = view,
@@ -57,18 +60,28 @@ class AuthenticationPresenter @Inject constructor(
         refreshSettingsInteractor = refreshSettingsInteractor
 ) {
 
+    private lateinit var currentServer: String
+    private lateinit var name: String
+    private lateinit var userName: String
+    private lateinit var userEmail: String
+    private lateinit var userPassword: String
+    private lateinit var roomName: String
+
     private lateinit var dbManager: DatabaseManager
-    private val protocol = chat.rocket.android.util.protocol
-    private var currentServer : String = "$protocol${chat.rocket.android.util.serverDomain
-            .sanitize()}"
     private var token: Token? = null
     private lateinit var client: RocketChatClient
     private lateinit var settings: PublicSettings
 
     var auth_state = STATE_LOADING
 
-    fun setState(auth_state: String) {
-        this.auth_state = auth_state
+    fun setConnectionParams(protocol: String, serverDomain: String, name: String, userName: String,
+                            userEmail: String, userPassword: String, roomName: String) {
+        this.currentServer = "$protocol${serverDomain.sanitize()}"
+        this.name = name
+        this.userName = userName
+        this.userEmail = userEmail
+        this.userPassword = userPassword
+        this.roomName = roomName
     }
 
     fun loadCredentials(callback: (isAuthenticated: Boolean) -> Unit) {
@@ -83,9 +96,9 @@ class AuthenticationPresenter @Inject constructor(
             }
 
             if (currentServer == null ||
-                serverToken == null ||
-                settings == null ||
-                account?.userName == null
+                    serverToken == null ||
+                    settings == null ||
+                    account?.userName == null
             ) {
                 callback(false)
             } else {
@@ -94,13 +107,14 @@ class AuthenticationPresenter @Inject constructor(
         }
     }
 
-    fun checkServer(server: String) {
-        if (!server.isValidUrl()) {
+    fun checkServer() {
+        if (!currentServer.isValidUrl()) {
+            auth_state = STATE_ERROR
             view.showInvalidServerUrlMessage()
         } else {
             view.showLoading()
-            setupConnectionInfo(server)
-            checkServerInfo(server)
+            setupConnectionInfo(currentServer)
+            checkServerInfo(currentServer)
         }
     }
 
@@ -111,13 +125,10 @@ class AuthenticationPresenter @Inject constructor(
         token = tokenRepository.get(currentServer)
     }
 
-    fun connect(serverUrl: String) {
-        connectToServer(serverUrl) {
-            setupConnection(serverUrl)
-            authenticateWithUserAndPassword(
-                    chat.rocket.android.util.userEmail,
-                    chat.rocket.android.util.userPassword
-            )
+    fun connect() {
+        connectToServer(currentServer) {
+            setupConnection(currentServer)
+            authenticateWithUserAndPassword(userEmail, userPassword)
         }
     }
 
@@ -143,6 +154,7 @@ class AuthenticationPresenter @Inject constructor(
                         block()
                     }
                 } catch (ex: Exception) {
+                    auth_state = STATE_ERROR
                     view.showMessage(ex)
                 } finally {
                     view.hideLoading()
@@ -172,8 +184,10 @@ class AuthenticationPresenter @Inject constructor(
                             roles = myself.roles,
                             status = myself.status,
                             name = myself.name,
-                            emails = myself.emails?.map { Email(it.address ?: "",
-                                    it.verified) },
+                            emails = myself.emails?.map {
+                                Email(it.address ?: "",
+                                        it.verified)
+                            },
                             username = username,
                             utcOffset = myself.utcOffset
                     )
@@ -191,22 +205,17 @@ class AuthenticationPresenter @Inject constructor(
                     toChatRoom()
                 }
             } catch (exception: RocketChatException) {
-                    analyticsManager.logLogin(
-                            AuthenticationEvent.AuthenticationWithUserAndPassword,
-                            false
-                    )
-                    exception.message?.let {
-                        if(it == "Unauthorized"){
-                            view.showMessage("Requires Registration")
-                            signup(chat.rocket.android.util.name,
-                                    chat.rocket.android.util.userName,
-                                    chat.rocket.android.util.userPassword,
-                                    chat.rocket.android.util.userEmail)
-                        }
-                        view.showMessage(it)
-                    }.ifNull {
-                        view.showGenericErrorMessage()
+                exception.message?.let {
+                    if (it == "Unauthorized") {
+                        view.showMessage("Requires Registration")
+                        signup(name,
+                                userName,
+                                userPassword,
+                                userEmail)
                     }
+                }.ifNull {
+                    view.showGenericErrorMessage()
+                }
             } finally {
                 view.hideLoading()
             }
@@ -255,10 +264,7 @@ class AuthenticationPresenter @Inject constructor(
                 view.saveSmartLockCredentials(username, password)
                 toChatRoom()
             } catch (exception: RocketChatException) {
-                analyticsManager.logSignUp(
-                        AuthenticationEvent.AuthenticationWithUserAndPassword,
-                        false
-                )
+                auth_state = STATE_ERROR
                 exception.message?.let {
                     view.showMessage(it)
                 }.ifNull {
@@ -300,14 +306,13 @@ class AuthenticationPresenter @Inject constructor(
         setupConnection(currentServer)
         getDbManager()
 
-//        view.showMessage("Going to Chat Room")
-
         GlobalScope.launch {
             try {
                 refreshChatRooms()
                 Timber.d("loading chat rooms")
-                checkChatRoom(chat.rocket.android.util.roomName)
+                checkChatRoom(roomName)
             } catch (ex: Exception) {
+                auth_state = STATE_ERROR
                 Timber.e(ex, "Error refreshing channels")
                 view.showGenericErrorMessage()
             }
@@ -324,20 +329,20 @@ class AuthenticationPresenter @Inject constructor(
         Timber.d("Done Processing rooms: $rooms")
     }
 
-    fun checkChatRoom(roomId: String) {
+    private fun checkChatRoom(roomId: String) {
         launchUI(strategy) {
             try {
                 val room = dbManager.getRoomByName(roomId)
                 if (room != null) {
-                    setState(STATE_READY)
-//                    loadChatRoom(room.chatRoom, true)
+                    auth_state = STATE_READY
                 } else {
                     //create new one
                     Timber.e("CREATE NEW CHANNEL")
                     createChannel(roomTypeOf(RoomType.PRIVATE_GROUP),
-                            chat.rocket.android.util.roomName, ArrayList(), false)
+                            roomName, ArrayList(), false)
                 }
             } catch (ex: Exception) {
+                auth_state = STATE_ERROR
                 Timber.e(ex, "Error loading channel")
                 view.showGenericErrorMessage()
             }
@@ -348,23 +353,24 @@ class AuthenticationPresenter @Inject constructor(
     fun loadChatRoom() {
         launchUI(strategy) {
             try {
-                val room = dbManager.getRoomByName(chat.rocket.android.util.roomName)
+                val room = dbManager.getRoomByName(roomName)
                 if (room != null) {
                     loadChatRoom(room.chatRoom, true)
                 } else {
                     //create new one
                     Timber.e("CREATE NEW CHANNEL")
                     createChannel(roomTypeOf(RoomType.PRIVATE_GROUP),
-                            chat.rocket.android.util.roomName, ArrayList(),false)
+                            roomName, ArrayList(), false)
                 }
             } catch (ex: Exception) {
+                auth_state = STATE_ERROR
                 Timber.e(ex, "Error loading channel")
                 view.showGenericErrorMessage()
             }
         }
     }
 
-    suspend fun loadChatRoom(chatRoom: ChatRoomEntity, local: Boolean = false) {
+    private suspend fun loadChatRoom(chatRoom: ChatRoomEntity, local: Boolean = false) {
         with(chatRoom) {
             val isDirectMessage = roomTypeOf(type) is RoomType.DirectMessage
             val roomName =
@@ -376,6 +382,7 @@ class AuthenticationPresenter @Inject constructor(
                     }
             val myself = getCurrentUser()
             if (myself?.username == null) {
+                auth_state = STATE_ERROR
                 view.showMessage(R.string.msg_generic_error)
             } else {
                 navigator.toChatRoom(
@@ -414,7 +421,7 @@ class AuthenticationPresenter @Inject constructor(
         return null
     }
 
-    fun createChannel(
+    private fun createChannel(
             roomType: RoomType,
             channelName: String,
             usersList: List<String>,
@@ -426,6 +433,7 @@ class AuthenticationPresenter @Inject constructor(
                 client.createChannel(roomType, channelName, usersList, readOnly)
                 toChatRoom()
             } catch (exception: RocketChatException) {
+                auth_state = STATE_ERROR
                 exception.message?.let {
                     view.showMessage(it)
                 }.ifNull {
@@ -435,11 +443,5 @@ class AuthenticationPresenter @Inject constructor(
                 view.hideLoading()
             }
         }
-    }
-
-    companion object {
-        const val STATE_LOADING = "state_loading"
-        const val STATE_READY = "state_ready"
-        const val STATE_ERROR = "state_error"
     }
 }

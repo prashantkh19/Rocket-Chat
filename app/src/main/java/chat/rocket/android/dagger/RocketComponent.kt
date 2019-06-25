@@ -1,7 +1,7 @@
 package chat.rocket.android.dagger
 
 import android.app.Application
-import chat.rocket.android.authentication.Rocket
+import chat.rocket.android.authentication.RocketChat
 import chat.rocket.android.authentication.TemplateActivity
 import chat.rocket.android.authentication.di.TemplateModule
 import chat.rocket.android.dagger.module.AppModule
@@ -28,6 +28,6 @@ interface RocketComponent {
         fun activity(templateActivity: TemplateActivity): Builder
     }
 
-    fun inject(obj: Rocket)
+    fun inject(obj: RocketChat)
 
 }
