@@ -3,6 +3,7 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
 
+apply plugin: 'io.fabric'
 android {
     compileSdkVersion 28
     buildToolsVersion "28.0.3"
@@ -53,7 +54,7 @@ android {
             buildConfigField "String", "REQUIRED_SERVER_VERSION", '"0.62.0"'
             buildConfigField "String", "RECOMMENDED_SERVER_VERSION", '"0.64.2"'
             signingConfig signingConfigs.debug
-//            applicationIdSuffix ".dev"
+            applicationIdSuffix ".dev"
         }
     }
 
@@ -98,3 +99,5 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
     implementation project(path: ':app')
 }
+
+//apply plugin: 'com.google.gms.google-services'

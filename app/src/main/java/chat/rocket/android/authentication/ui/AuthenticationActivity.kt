@@ -4,7 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.core.view.isVisible
 import chat.rocket.android.R
-import chat.rocket.android.authentication.Rocket
+import chat.rocket.android.authentication.RocketChat
 import chat.rocket.android.authentication.TemplateActivity
 import chat.rocket.android.helper.saveCredentials
 import chat.rocket.android.util.extensions.showToast
@@ -12,14 +12,12 @@ import kotlinx.android.synthetic.main.fragment_authentication_server.*
 
 class AuthenticationActivity : TemplateActivity() {
 
-    lateinit var rocket: Rocket
+    lateinit var rocketChat: RocketChat
 
     override fun onCreate(savedInstanceState: Bundle?) {
 //        AndroidInjection.inject(this@AuthenticationActivity)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_authentication)
-        rocket = Rocket(this)
-        rocket.loadCredentials()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -60,7 +58,7 @@ class AuthenticationActivity : TemplateActivity() {
     }
 
     override fun versionOk() {
-        rocket.performConnect()
+        rocketChat.performConnect()
     }
 
     override fun saveSmartLockCredentials(usernameOrEmail: String, password: String) {
