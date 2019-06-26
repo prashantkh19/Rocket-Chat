@@ -1,5 +1,6 @@
 package chat.rocket.android.authentication.presentation
 
+import androidx.lifecycle.MutableLiveData
 import chat.rocket.android.R
 import chat.rocket.android.analytics.AnalyticsManager
 import chat.rocket.android.analytics.event.AuthenticationEvent
@@ -72,7 +73,7 @@ class AuthenticationPresenter @Inject constructor(
     private lateinit var client: RocketChatClient
     private lateinit var settings: PublicSettings
 
-    var auth_state = STATE_LOADING
+    var authState: MutableLiveData<String> = MutableLiveData()
 
     fun setConnectionParams(protocol: String, serverDomain: String, name: String, userName: String,
                             userEmail: String, userPassword: String, roomName: String) {
@@ -82,6 +83,7 @@ class AuthenticationPresenter @Inject constructor(
         this.userEmail = userEmail
         this.userPassword = userPassword
         this.roomName = roomName
+        authState.value = STATE_LOADING
     }
 
     fun loadCredentials(callback: (isAuthenticated: Boolean) -> Unit) {
@@ -109,7 +111,7 @@ class AuthenticationPresenter @Inject constructor(
 
     fun checkServer() {
         if (!currentServer.isValidUrl()) {
-            auth_state = STATE_ERROR
+            authState.value = STATE_LOADING
             view.showInvalidServerUrlMessage()
         } else {
             view.showLoading()
@@ -154,7 +156,7 @@ class AuthenticationPresenter @Inject constructor(
                         block()
                     }
                 } catch (ex: Exception) {
-                    auth_state = STATE_ERROR
+                    authState.value = STATE_ERROR
                     view.showMessage(ex)
                 } finally {
                     view.hideLoading()
@@ -196,10 +198,6 @@ class AuthenticationPresenter @Inject constructor(
                     localRepository.save(LocalRepository.CURRENT_USERNAME_KEY, username)
                     saveAccount(username)
                     saveToken(token)
-                    analyticsManager.logLogin(
-                            AuthenticationEvent.AuthenticationWithUserAndPassword,
-                            true
-                    )
                     view.saveSmartLockCredentials(usernameOrEmail, password)
                     //to going to chat room
                     toChatRoom()
@@ -207,11 +205,12 @@ class AuthenticationPresenter @Inject constructor(
             } catch (exception: RocketChatException) {
                 exception.message?.let {
                     if (it == "Unauthorized") {
-                        view.showMessage("Requires Registration")
                         signup(name,
                                 userName,
                                 userPassword,
                                 userEmail)
+                    } else {
+                        view.showMessage(it)
                     }
                 }.ifNull {
                     view.showGenericErrorMessage()
@@ -264,7 +263,7 @@ class AuthenticationPresenter @Inject constructor(
                 view.saveSmartLockCredentials(username, password)
                 toChatRoom()
             } catch (exception: RocketChatException) {
-                auth_state = STATE_ERROR
+                authState.value = STATE_ERROR
                 exception.message?.let {
                     view.showMessage(it)
                 }.ifNull {
@@ -272,7 +271,6 @@ class AuthenticationPresenter @Inject constructor(
                 }
             } finally {
                 view.hideLoading()
-
             }
         }
     }
@@ -308,13 +306,11 @@ class AuthenticationPresenter @Inject constructor(
 
         GlobalScope.launch {
             try {
-                refreshChatRooms()
                 Timber.d("loading chat rooms")
+                refreshChatRooms()
                 checkChatRoom(roomName)
             } catch (ex: Exception) {
-                auth_state = STATE_ERROR
                 Timber.e(ex, "Error refreshing channels")
-                view.showGenericErrorMessage()
             }
         }
     }
@@ -334,21 +330,21 @@ class AuthenticationPresenter @Inject constructor(
             try {
                 val room = dbManager.getRoomByName(roomId)
                 if (room != null) {
-                    auth_state = STATE_READY
+                    Timber.d("authState: Ready")
+                    authState.value = STATE_READY
                 } else {
                     //create new one
-                    Timber.e("CREATE NEW CHANNEL")
+                    Timber.e("Creating new Channel")
                     createChannel(roomTypeOf(RoomType.PRIVATE_GROUP),
                             roomName, ArrayList(), false)
                 }
             } catch (ex: Exception) {
-                auth_state = STATE_ERROR
+                authState.value = STATE_ERROR
                 Timber.e(ex, "Error loading channel")
                 view.showGenericErrorMessage()
             }
         }
     }
-
 
     fun loadChatRoom() {
         launchUI(strategy) {
@@ -357,13 +353,9 @@ class AuthenticationPresenter @Inject constructor(
                 if (room != null) {
                     loadChatRoom(room.chatRoom, true)
                 } else {
-                    //create new one
-                    Timber.e("CREATE NEW CHANNEL")
-                    createChannel(roomTypeOf(RoomType.PRIVATE_GROUP),
-                            roomName, ArrayList(), false)
+                    Timber.e("Error loading channel")
                 }
             } catch (ex: Exception) {
-                auth_state = STATE_ERROR
                 Timber.e(ex, "Error loading channel")
                 view.showGenericErrorMessage()
             }
@@ -382,7 +374,7 @@ class AuthenticationPresenter @Inject constructor(
                     }
             val myself = getCurrentUser()
             if (myself?.username == null) {
-                auth_state = STATE_ERROR
+                authState.value = STATE_ERROR
                 view.showMessage(R.string.msg_generic_error)
             } else {
                 navigator.toChatRoom(
@@ -433,7 +425,7 @@ class AuthenticationPresenter @Inject constructor(
                 client.createChannel(roomType, channelName, usersList, readOnly)
                 toChatRoom()
             } catch (exception: RocketChatException) {
-                auth_state = STATE_ERROR
+                authState.value = STATE_ERROR
                 exception.message?.let {
                     view.showMessage(it)
                 }.ifNull {
@@ -443,5 +435,10 @@ class AuthenticationPresenter @Inject constructor(
                 view.hideLoading()
             }
         }
+    }
+
+    internal fun logout() {
+        logout(null)
+        authState.value = STATE_LOADING
     }
 }

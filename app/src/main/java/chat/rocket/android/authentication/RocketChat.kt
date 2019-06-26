@@ -1,5 +1,6 @@
 package chat.rocket.android.authentication
 
+import androidx.lifecycle.MutableLiveData
 import chat.rocket.android.authentication.presentation.AuthenticationPresenter
 import chat.rocket.android.dagger.DaggerRocketComponent
 import javax.inject.Inject
@@ -32,8 +33,8 @@ class RocketChat constructor(activity: TemplateActivity,
                 roomName)
     }
 
-    fun getState(): String {
-        return presenter.auth_state
+    fun getState(): MutableLiveData<String> {
+        return presenter.authState
     }
 
     fun loadCredentials() {
@@ -44,6 +45,10 @@ class RocketChat constructor(activity: TemplateActivity,
                 connectToServer()
             }
         }
+    }
+
+    fun logoutCurrentUser() {
+        presenter.logout()
     }
 
     fun loadChatRoom() {
