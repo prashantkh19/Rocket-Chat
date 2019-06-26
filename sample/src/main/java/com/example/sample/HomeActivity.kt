@@ -2,32 +2,32 @@ package com.example.sample
 
 import android.content.Intent
 import android.os.Bundle
-import androidx.core.view.isVisible
+import androidx.lifecycle.Observer
 import chat.rocket.android.authentication.RocketChat
+import chat.rocket.android.authentication.STATE_ERROR
 import chat.rocket.android.authentication.STATE_READY
 import chat.rocket.android.authentication.TemplateActivity
 import chat.rocket.android.helper.saveCredentials
 import chat.rocket.android.util.extensions.showToast
 import kotlinx.android.synthetic.main.home_activity.*
 
-
 const val protocol = "http://"
 
 const val serverDomain = "192.168.43.169:3000"
 
-const val name = "Prashant Khandelwal"
+const val name = "USER 1"
 
-const val userName = "prkh"
+const val userName = "user"
 
-const val userEmail = "prkh@gmail.com"
+const val userEmail = "email@gmail.com"
 
-const val userPassword = "login"
+const val userPassword = "password"
 
-const val roomName = "prkh"
+const val roomName = "self_service_user"
 
 class HomeActivity : TemplateActivity() {
 
-    lateinit var rocketChat: RocketChat
+    private lateinit var rocketChat: RocketChat
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,13 +44,19 @@ class HomeActivity : TemplateActivity() {
 
         rocketChat.loadCredentials()
 
+        button_support.isEnabled = false
+
+        rocketChat.getState().observe(this,
+                Observer {
+                    if (it == STATE_READY)
+                        button_support.isEnabled = true
+                    else if (it == STATE_ERROR)
+                        showMessage("Couldn't load")
+                }
+        )
+
         button_support.setOnClickListener {
-            if (rocketChat.getState() == STATE_READY) {
-                showMessage("Going to Chat Room")
-                rocketChat.loadChatRoom()
-            } else {
-                showMessage("Not Ready")
-            }
+            rocketChat.loadChatRoom()
         }
     }
 
@@ -77,11 +83,11 @@ class HomeActivity : TemplateActivity() {
     }
 
     override fun showLoading() {
-        view_loading.isVisible = true
+//        view_loading.isVisible = true
     }
 
     override fun hideLoading() {
-        view_loading.isVisible = false
+//        view_loading.isVisible = false
     }
 
     override fun alertNotRecommendedVersion() {
@@ -98,5 +104,10 @@ class HomeActivity : TemplateActivity() {
 
     override fun saveSmartLockCredentials(usernameOrEmail: String, password: String) {
         saveCredentials(usernameOrEmail, password)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        rocketChat.logoutCurrentUser()
     }
 }

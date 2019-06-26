@@ -29,6 +29,6 @@ class AuthenticationNavigator(internal val activity: AppCompatActivity) {
                 )
         )
         activity.overridePendingTransition(R.anim.open_enter, R.anim.open_exit)
-        activity.finish()
+//        activity.finish()
     }
 }
