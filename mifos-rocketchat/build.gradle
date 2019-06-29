@@ -1,0 +1,168 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
+apply plugin: "com.github.ben-manes.versions"
+
+project.group = GROUP
+version = VERSION_NAME
+
+android {
+    compileSdkVersion versions.compileSdk
+    buildToolsVersion versions.buildTools
+
+    defaultConfig {
+        minSdkVersion versions.minSdk
+        targetSdkVersion versions.targetSdk
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        multiDexEnabled true
+
+        def gitSha = 'git rev-parse --short HEAD'.execute([], project.rootDir).text.trim()
+        buildConfigField "String", "GIT_SHA", "\"${gitSha}\""
+
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments = ["room.schemaLocation": "$projectDir/schemas".toString()]
+            }
+        }
+
+        // For Jitsi
+        compileOptions {
+            sourceCompatibility JavaVersion.VERSION_1_8
+            targetCompatibility JavaVersion.VERSION_1_8
+        }
+
+        // For Jitsi
+        ndk {
+            abiFilters "armeabi-v7a", "x86"
+        }
+    }
+
+    buildTypes {
+        release {
+            buildConfigField "String", "REQUIRED_SERVER_VERSION", '"0.62.0"'
+            buildConfigField "String", "RECOMMENDED_SERVER_VERSION", '"0.64.2"'
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+
+        debug {
+            buildConfigField "String", "REQUIRED_SERVER_VERSION", '"0.62.0"'
+            buildConfigField "String", "RECOMMENDED_SERVER_VERSION", '"0.64.2"'
+        }
+    }
+
+    flavorDimensions "type"
+
+    productFlavors {
+        // includes proprietary libs
+        play {
+            dimension "type"
+        }
+
+        // only FOSS
+        foss {
+            dimension "type"
+        }
+    }
+
+    packagingOptions {
+        exclude 'META-INF/core.kotlin_module'
+        exclude 'META-INF/main.kotlin_module'
+    }
+
+    lintOptions {
+        lintConfig file("src/main/res/xml/lint.xml")
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+
+    implementation project(':player')
+    implementation project(':emoji')
+    implementation project(':draw')
+    implementation project(':util')
+    implementation project(':core')
+    implementation project(':suggestions')
+
+    implementation libraries.kotlin
+    implementation libraries.coroutinesCore
+    implementation libraries.coroutinesAndroid
+
+    implementation libraries.appCompat
+    implementation libraries.recyclerview
+    implementation libraries.constraintlayout
+    implementation libraries.cardview
+    implementation libraries.browser
+
+    implementation libraries.androidKtx
+    implementation libraries.fragmentsKtx
+
+    implementation libraries.dagger
+    implementation libraries.daggerSupport
+    kapt libraries.daggerProcessor
+    kapt libraries.daggerAndroidApt
+
+    implementation libraries.flexbox
+    implementation libraries.material
+
+    implementation libraries.room
+    kapt libraries.roomProcessor
+    implementation libraries.lifecycleExtensions
+    kapt libraries.lifecycleCompiler
+    implementation libraries.viewmodelKtx
+    implementation libraries.workmanager
+
+    implementation libraries.livedataKtx
+
+    implementation libraries.rxKotlin
+    implementation libraries.rxAndroid
+
+    api libraries.moshi
+    implementation libraries.okhttp
+    implementation libraries.okhttpLogger
+
+    implementation libraries.timber
+    implementation libraries.threeTenABP
+
+    kapt libraries.kotshiCompiler
+    implementation libraries.kotshiApi
+
+    implementation libraries.fresco
+    api libraries.frescoOkHttp
+    implementation libraries.frescoAnimatedGif
+    implementation libraries.frescoWebP
+    implementation libraries.frescoAnimatedWebP
+
+    implementation libraries.frescoImageViewer
+
+    implementation libraries.markwon
+
+    implementation libraries.aVLoadingIndicatorView
+
+    implementation libraries.glide
+    implementation libraries.glideTransformations
+
+    implementation(libraries.jitsi) { transitive = true }
+
+    implementation 'com.google.code.findbugs:jsr305:3.0.2'
+
+//     Proprietary libraries
+    playImplementation libraries.fcm
+    playImplementation libraries.firebaseAnalytics
+    playImplementation libraries.playServicesAuth
+    playImplementation('com.crashlytics.sdk.android:crashlytics:2.9.8@aar') { transitive = true }
+    playImplementation('com.crashlytics.sdk.android:answers:1.4.6@aar') { transitive = true }
+
+    testImplementation libraries.junit
+    testImplementation libraries.truth
+    androidTestImplementation libraries.espressoCore
+    androidTestImplementation libraries.espressoIntents
+}
+
+androidExtensions {
+    experimental = true
+}
+
+apply from: '../maven_push.gradle'
