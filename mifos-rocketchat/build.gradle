@@ -52,19 +52,19 @@ android {
         }
     }
 
-    flavorDimensions "type"
-
-    productFlavors {
-        // includes proprietary libs
-        play {
-            dimension "type"
-        }
-
-        // only FOSS
-        foss {
-            dimension "type"
-        }
-    }
+//    flavorDimensions "type"
+//
+//    productFlavors {
+//        // includes proprietary libs
+//        play {
+//            dimension "type"
+//        }
+//
+//        // only FOSS
+//        foss {
+//            dimension "type"
+//        }
+//    }
 
     packagingOptions {
         exclude 'META-INF/core.kotlin_module'
@@ -99,8 +99,8 @@ dependencies {
     implementation libraries.androidKtx
     implementation libraries.fragmentsKtx
 
-    implementation libraries.dagger
-    implementation libraries.daggerSupport
+    api libraries.dagger
+    api libraries.daggerSupport
     kapt libraries.daggerProcessor
     kapt libraries.daggerAndroidApt
 
@@ -149,11 +149,11 @@ dependencies {
     implementation 'com.google.code.findbugs:jsr305:3.0.2'
 
 //     Proprietary libraries
-    playImplementation libraries.fcm
-    playImplementation libraries.firebaseAnalytics
-    playImplementation libraries.playServicesAuth
-    playImplementation('com.crashlytics.sdk.android:crashlytics:2.9.8@aar') { transitive = true }
-    playImplementation('com.crashlytics.sdk.android:answers:1.4.6@aar') { transitive = true }
+//    playImplementation libraries.fcm
+//    playImplementation libraries.firebaseAnalytics
+//    playImplementation libraries.playServicesAuth
+//    playImplementation('com.crashlytics.sdk.android:crashlytics:2.9.8@aar') { transitive = true }
+//    playImplementation('com.crashlytics.sdk.android:answers:1.4.6@aar') { transitive = true }
 
     testImplementation libraries.junit
     testImplementation libraries.truth

@@ -11,7 +11,6 @@ import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.work.Worker
 import chat.rocket.android.BuildConfig
 import chat.rocket.android.dagger.DaggerAppComponent
-import chat.rocket.android.dagger.injector.HasWorkerInjector
 import chat.rocket.android.dagger.qualifier.ForMessages
 import chat.rocket.android.emoji.Emoji
 import chat.rocket.android.emoji.EmojiRepository
@@ -30,17 +29,13 @@ import com.facebook.drawee.backends.pipeline.Fresco
 import com.facebook.imagepipeline.core.ImagePipelineConfig
 import com.jakewharton.threetenabp.AndroidThreeTen
 import dagger.android.DispatchingAndroidInjector
-import dagger.android.HasActivityInjector
-import dagger.android.HasBroadcastReceiverInjector
-import dagger.android.HasServiceInjector
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.lang.ref.WeakReference
 import javax.inject.Inject
 
-open class RocketChatApplication : Application(), HasActivityInjector, HasServiceInjector,
-        HasBroadcastReceiverInjector, HasWorkerInjector {
+open class RocketChatApplication(val application: Application) {
 
     @Inject
     lateinit var appLifecycleObserver: AppLifecycleObserver
@@ -80,11 +75,9 @@ open class RocketChatApplication : Application(), HasActivityInjector, HasServic
     @field:ForMessages
     lateinit var messagesPrefs: SharedPreferences
 
-    override fun onCreate() {
-        super.onCreate()
-
+    fun init() {
         DaggerAppComponent.builder()
-                .application(this)
+                .application(application)
                 .build()
                 .inject(this)
 
@@ -92,11 +85,11 @@ open class RocketChatApplication : Application(), HasActivityInjector, HasServic
                 .lifecycle
                 .addObserver(appLifecycleObserver)
 
-        context = WeakReference(applicationContext)
+        context = WeakReference(application)
 
-        AndroidThreeTen.init(this)
+        AndroidThreeTen.init(application)
 
-        setupFabric(this)
+        setupFabric(application)
         setupFresco()
         setupTimber()
 
@@ -136,7 +129,7 @@ open class RocketChatApplication : Application(), HasActivityInjector, HasServic
     }
 
     private fun setupFresco() {
-        Fresco.initialize(this, imagePipelineConfig, draweeConfig)
+        Fresco.initialize(application, imagePipelineConfig, draweeConfig)
     }
 
     private fun setupTimber() {
@@ -147,13 +140,13 @@ open class RocketChatApplication : Application(), HasActivityInjector, HasServic
         }
     }
 
-    override fun activityInjector() = activityDispatchingAndroidInjector
+    fun activityInjector(): Any = activityDispatchingAndroidInjector
 
-    override fun serviceInjector() = serviceDispatchingAndroidInjector
+    fun serviceInjector(): Any = serviceDispatchingAndroidInjector
 
-    override fun broadcastReceiverInjector() = broadcastReceiverInjector
+    fun broadcastReceiverInjector(): Any = broadcastReceiverInjector
 
-    override fun workerInjector() = workerInjector
+    fun workerInjector(): Any = workerInjector
 
     companion object {
         var context: WeakReference<Context>? = null
@@ -168,7 +161,7 @@ open class RocketChatApplication : Application(), HasActivityInjector, HasServic
      * but custom emojis vary according to the its url.
      */
     fun loadEmojis() {
-        EmojiRepository.init(this)
+        EmojiRepository.init(application)
         val currentServer = getCurrentServerInteractor.get()
         currentServer?.let { server ->
             GlobalScope.launch {
@@ -190,10 +183,10 @@ open class RocketChatApplication : Application(), HasActivityInjector, HasServic
                                 isDefault = true
                         ))
                     }
-                    EmojiRepository.load(this@RocketChatApplication, customEmojis = customEmojiList)
+                    EmojiRepository.load(application, customEmojis = customEmojiList)
                 } catch (ex: RocketChatException) {
                     Timber.e(ex)
-                    EmojiRepository.load(this@RocketChatApplication as Context)
+                    EmojiRepository.load(application)
                 }
             }
         }
