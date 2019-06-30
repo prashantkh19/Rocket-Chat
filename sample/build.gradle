@@ -42,20 +42,6 @@ android {
         }
     }
 
-    flavorDimensions "type"
-
-    productFlavors {
-        // includes proprietary libs
-        play {
-            dimension "type"
-        }
-
-        // only FOSS
-        foss {
-            dimension "type"
-        }
-    }
-
 }
 
 androidExtensions {
@@ -72,18 +58,13 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-extensions:2.0.0'
     implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.0.0'
 
-
-    implementation libraries.dagger
-    implementation libraries.daggerSupport
-    kapt libraries.daggerProcessor
-    kapt libraries.daggerAndroidApt
-
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.2.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
-    implementation 'com.example.mylibrary:mylibrary:1.0'
 
-    implementation project(path: ':mifos-rocketchat')
+//    implementation 'chat.rocket.android:mifos-rocketchat:1.0.2'
+
+    implementation (project(path: ':mifos-rocketchat'))
 }
 
 //apply plugin: 'com.google.gms.google-services'
