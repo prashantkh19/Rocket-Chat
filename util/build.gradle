@@ -2,14 +2,15 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 
+project.group = GROUP
+version = VERSION_NAME
+
 android {
     compileSdkVersion versions.compileSdk
 
     defaultConfig {
         minSdkVersion versions.minSdk
         targetSdkVersion versions.targetSdk
-        versionCode 1
-        versionName "1.0.0"
     }
 
     buildTypes {
@@ -42,3 +43,5 @@ dependencies {
     implementation libraries.lifecycleExtensions
     kapt libraries.lifecycleCompiler
 }
+
+apply from: '../maven_push.gradle'
