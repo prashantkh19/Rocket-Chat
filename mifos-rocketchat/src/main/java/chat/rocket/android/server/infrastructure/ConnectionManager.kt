@@ -2,47 +2,34 @@ package chat.rocket.android.server.infrastructure
 
 import androidx.lifecycle.MutableLiveData
 import chat.rocket.android.db.DatabaseManager
-import chat.rocket.common.model.BaseMessage
 import chat.rocket.common.model.BaseRoom
 import chat.rocket.common.model.User
 import chat.rocket.common.model.UserStatus
 import chat.rocket.core.RocketChatClient
-import chat.rocket.core.internal.realtime.setDefaultStatus
-import chat.rocket.core.internal.realtime.setTemporaryStatus
+import chat.rocket.core.internal.realtime.*
 import chat.rocket.core.internal.realtime.socket.connect
 import chat.rocket.core.internal.realtime.socket.disconnect
 import chat.rocket.core.internal.realtime.socket.model.State
 import chat.rocket.core.internal.realtime.socket.model.StreamMessage
 import chat.rocket.core.internal.realtime.socket.model.Type
-import chat.rocket.core.internal.realtime.subscribeActiveUsers
-import chat.rocket.core.internal.realtime.subscribeRoomMessages
-import chat.rocket.core.internal.realtime.subscribeRooms
-import chat.rocket.core.internal.realtime.subscribeSubscriptions
-import chat.rocket.core.internal.realtime.subscribeUserData
-import chat.rocket.core.internal.realtime.unsubscribe
 import chat.rocket.core.internal.rest.chatRooms
 import chat.rocket.core.model.Message
 import chat.rocket.core.model.Myself
 import chat.rocket.core.model.Room
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.actor
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.coroutines.selects.select
 import timber.log.Timber
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.coroutines.CoroutineContext
 
 class ConnectionManager(
-    internal val client: RocketChatClient,
-    private val dbManager: DatabaseManager
+        internal val client: RocketChatClient,
+        private val dbManager: DatabaseManager
 ) : CoroutineScope {
-    private var connectJob : Job? = null
+    private var connectJob: Job? = null
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.IO
 
@@ -123,7 +110,7 @@ class ConnectionManager(
 
         var totalBatchedUsers = 0
         val userActor = createBatchActor<User>(
-            activeUsersContext, parent = connectJob, maxSize = 500, maxTime = 1000
+                activeUsersContext, parent = connectJob, maxSize = 500, maxTime = 1000
         ) { users ->
             totalBatchedUsers += users.size
             Timber.d("Processing Users batch: ${users.size} - $totalBatchedUsers")
@@ -133,7 +120,7 @@ class ConnectionManager(
         }
 
         val roomsActor = createBatchActor<StreamMessage<BaseRoom>>(
-            roomsContext, parent = connectJob, maxSize = 10
+                roomsContext, parent = connectJob, maxSize = 10
         ) { batch ->
             Timber.d("processing Stream batch: ${batch.size} - $batch")
             dbManager.processChatRoomsBatch(batch)
@@ -150,7 +137,7 @@ class ConnectionManager(
         }
 
         val messagesActor = createBatchActor<Message>(
-            messagesContext, parent = connectJob, maxSize = 100, maxTime = 500
+                messagesContext, parent = connectJob, maxSize = 100, maxTime = 500
         ) { messages ->
             Timber.d("Processing Messages batch: ${messages.size}")
             dbManager.processMessagesBatch(messages.distinctBy { it.id })
@@ -170,8 +157,7 @@ class ConnectionManager(
                 roomsActor.send(room)
                 if (room.type != Type.Removed) {
                     room.data.lastMessage?.let {
-                        // FIXME Do we really need to send it to messagesActor?
-//                        messagesActor.send(it as Message)
+                        messagesActor.send(it)
                     }
                 }
             }
@@ -295,11 +281,11 @@ class ConnectionManager(
     }
 
     private inline fun <T> createBatchActor(
-        context: CoroutineContext = Dispatchers.IO,
-        parent: Job? = null,
-        maxSize: Int = 100,
-        maxTime: Int = 500,
-        crossinline block: (List<T>) -> Unit
+            context: CoroutineContext = Dispatchers.IO,
+            parent: Job? = null,
+            maxSize: Int = 100,
+            maxTime: Int = 500,
+            crossinline block: (List<T>) -> Unit
     ): SendChannel<T> {
         return actor(context) {
             val batch = ArrayList<T>(maxSize)
@@ -339,7 +325,7 @@ private fun Long.orZero(): Long {
 }
 
 suspend fun ConnectionManager.chatRooms(timestamp: Long = 0, filterCustom: Boolean = true) =
-    client.chatRooms(timestamp, filterCustom)
+        client.chatRooms(timestamp, filterCustom)
 
 val ConnectionManager.state: State
     get() = client.state

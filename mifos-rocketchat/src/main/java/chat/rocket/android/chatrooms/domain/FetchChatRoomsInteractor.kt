@@ -7,13 +7,13 @@ import chat.rocket.core.internal.rest.chatRooms
 import timber.log.Timber
 
 class FetchChatRoomsInteractor(
-    private val client: RocketChatClient,
-    private val dbManager: DatabaseManager
+        private val client: RocketChatClient,
+        private val dbManager: DatabaseManager
 ) {
 
     suspend fun refreshChatRooms() {
         val rooms = retryIO("fetch chatRooms", times = 10,
-            initialDelay = 200, maxDelay = 2000) {
+                initialDelay = 200, maxDelay = 2000) {
             client.chatRooms().update
         }
 

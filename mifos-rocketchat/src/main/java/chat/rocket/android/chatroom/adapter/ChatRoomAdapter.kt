@@ -7,12 +7,7 @@ import androidx.recyclerview.widget.RecyclerView
 import chat.rocket.android.R
 import chat.rocket.android.analytics.AnalyticsManager
 import chat.rocket.android.chatroom.presentation.ChatRoomNavigator
-import chat.rocket.android.chatroom.uimodel.AttachmentUiModel
-import chat.rocket.android.chatroom.uimodel.BaseUiModel
-import chat.rocket.android.chatroom.uimodel.MessageReplyUiModel
-import chat.rocket.android.chatroom.uimodel.MessageUiModel
-import chat.rocket.android.chatroom.uimodel.UrlPreviewUiModel
-import chat.rocket.android.chatroom.uimodel.toViewType
+import chat.rocket.android.chatroom.uimodel.*
 import chat.rocket.android.emoji.EmojiReactionListener
 import chat.rocket.android.util.extensions.inflate
 import chat.rocket.android.util.extensions.openTabbedUrl
@@ -24,14 +19,14 @@ import timber.log.Timber
 import java.security.InvalidParameterException
 
 class ChatRoomAdapter(
-    private val roomId: String? = null,
-    private val roomType: String? = null,
-    private val roomName: String? = null,
-    private val actionSelectListener: OnActionSelected? = null,
-    private val enableActions: Boolean = true,
-    private val reactionListener: EmojiReactionListener? = null,
-    private val navigator: ChatRoomNavigator? = null,
-    private val analyticsManager: AnalyticsManager? = null
+        private val roomId: String? = null,
+        private val roomType: String? = null,
+        private val roomName: String? = null,
+        private val actionSelectListener: OnActionSelected? = null,
+        private val enableActions: Boolean = true,
+        private val reactionListener: EmojiReactionListener? = null,
+        private val navigator: ChatRoomNavigator? = null,
+        private val analyticsManager: AnalyticsManager? = null
 ) : RecyclerView.Adapter<BaseViewHolder<*>>() {
     private val dataSet = ArrayList<BaseUiModel<*>>()
 
@@ -44,15 +39,15 @@ class ChatRoomAdapter(
             BaseUiModel.ViewType.MESSAGE -> {
                 val view = parent.inflate(R.layout.item_message)
                 MessageViewHolder(
-                    view,
-                    actionsListener,
-                    reactionListener,
-                    { userId -> navigator?.toUserDetails(userId) },
-                    {
-                        if (roomId != null && roomType != null) {
-                            navigator?.toVideoConference(roomId, roomType)
+                        view,
+                        actionsListener,
+                        reactionListener,
+                        { userId -> navigator?.toUserDetails(userId) },
+                        {
+                            if (roomId != null && roomType != null) {
+                                navigator?.toVideoConference(roomId, roomType)
+                            }
                         }
-                    }
                 )
             }
             BaseUiModel.ViewType.URL_PREVIEW -> {
@@ -62,18 +57,18 @@ class ChatRoomAdapter(
             BaseUiModel.ViewType.ATTACHMENT -> {
                 val view = parent.inflate(R.layout.item_message_attachment)
                 AttachmentViewHolder(
-                    view,
-                    actionsListener,
-                    reactionListener,
-                    actionAttachmentOnClickListener
+                        view,
+                        actionsListener,
+                        reactionListener,
+                        actionAttachmentOnClickListener
                 )
             }
             BaseUiModel.ViewType.MESSAGE_REPLY -> {
                 val view = parent.inflate(R.layout.item_message_reply)
                 MessageReplyViewHolder(
-                    view,
-                    actionsListener,
-                    reactionListener
+                        view,
+                        actionsListener,
+                        reactionListener
                 ) { roomName, permalink ->
                     actionSelectListener?.openDirectMessage(roomName, permalink)
                 }
@@ -143,7 +138,7 @@ class ChatRoomAdapter(
         //---At first we will update all already saved elements with received updated ones
         val filteredDataSet = dataSet.filter { newItem ->
             val matchedIndex =
-                this.dataSet.indexOfFirst { it.messageId == newItem.messageId && it.viewType == newItem.viewType }
+                    this.dataSet.indexOfFirst { it.messageId == newItem.messageId && it.viewType == newItem.viewType }
             if (matchedIndex > -1) {
                 this.dataSet[matchedIndex] = newItem
                 notifyItemChanged(matchedIndex)
@@ -173,8 +168,7 @@ class ChatRoomAdapter(
         notifyDataSetChanged()
     }
 
-    // FIXME What's 0,1 and 2 means for here?
-    fun updateItem(message: BaseUiModel<*>): Int {
+    fun updateItem(message: BaseUiModel<*>): Boolean {
         val index = dataSet.indexOfLast { it.messageId == message.messageId }
         val indexOfNext = dataSet.indexOfFirst { it.messageId == message.messageId }
         Timber.d("index: $index")
@@ -185,13 +179,7 @@ class ChatRoomAdapter(
                     if (viewModel.nextDownStreamMessage == null) {
                         viewModel.reactions = message.reactions
                     }
-
-                    if (ind > 0 &&
-                        dataSet[ind].message.timestamp > dataSet[ind - 1].message.timestamp) {
-                        return 2
-                    } else {
-                        notifyItemChanged(ind)
-                    }
+                    notifyItemChanged(ind)
                 }
             }
             // Delete message only if current is a system message update, i.e.: Message Removed
@@ -199,9 +187,9 @@ class ChatRoomAdapter(
                 dataSet.removeAt(indexOfNext)
                 notifyItemRemoved(indexOfNext)
             }
-            return 0
+            return true
         }
-        return 1
+        return false
     }
 
     fun removeItem(messageId: String) {
@@ -316,10 +304,10 @@ class ChatRoomAdapter(
         fun showMessageInfo(id: String)
 
         fun citeMessage(
-            roomName: String,
-            roomType: String,
-            messageId: String,
-            mentionAuthor: Boolean
+                roomName: String,
+                roomType: String,
+                messageId: String,
+                mentionAuthor: Boolean
         )
 
         fun copyMessage(id: String)

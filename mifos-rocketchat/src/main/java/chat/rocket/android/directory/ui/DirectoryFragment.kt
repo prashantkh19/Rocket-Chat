@@ -1,12 +1,8 @@
 package chat.rocket.android.directory.ui
 
+import DrawableHelper
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.MenuItem
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.core.view.isVisible
@@ -39,8 +35,10 @@ internal const val TAG_DIRECTORY_FRAGMENT = "DirectoryFragment"
 fun newInstance(): Fragment = DirectoryFragment()
 
 class DirectoryFragment : Fragment(), DirectoryView {
-    @Inject lateinit var analyticsManager: AnalyticsManager
-    @Inject lateinit var presenter: DirectoryPresenter
+    @Inject
+    lateinit var analyticsManager: AnalyticsManager
+    @Inject
+    lateinit var presenter: DirectoryPresenter
     private var isSortByChannels: Boolean = true
     private var isSearchForGlobalUsers: Boolean = false
     private val linearLayoutManager = LinearLayoutManager(context)
@@ -48,11 +46,13 @@ class DirectoryFragment : Fragment(), DirectoryView {
         override fun onChannelSelected(channelId: String, channelName: String) {
             presenter.toChannel(channelId, channelName)
         }
+
         override fun onUserSelected(username: String, name: String) {
-            presenter.toDirectMessage(username, name)
+            presenter.tiDirectMessage(username, name)
         }
+
         override fun onGlobalUserSelected(username: String, name: String) {
-            presenter.toDirectMessage(username, name)
+            presenter.tiDirectMessage(username, name)
         }
     })
     private val hashtagDrawable by lazy {
@@ -72,9 +72,9 @@ class DirectoryFragment : Fragment(), DirectoryView {
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+            inflater: LayoutInflater,
+            container: ViewGroup?,
+            savedInstanceState: Bundle?
     ): View? = container?.inflate(R.layout.fragment_directory)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -119,11 +119,11 @@ class DirectoryFragment : Fragment(), DirectoryView {
                 directoryAdapter.prependData(dataSet)
                 if (dataSet.size >= 60) {
                     recycler_view.addOnScrollListener(object :
-                        EndlessRecyclerViewScrollListener(linearLayoutManager) {
+                            EndlessRecyclerViewScrollListener(linearLayoutManager) {
                         override fun onLoadMore(
-                            page: Int,
-                            totalItemsCount: Int,
-                            recyclerView: RecyclerView
+                                page: Int,
+                                totalItemsCount: Int,
+                                recyclerView: RecyclerView
                         ) {
                             presenter.loadAllDirectoryChannels()
                         }
@@ -141,11 +141,11 @@ class DirectoryFragment : Fragment(), DirectoryView {
                 directoryAdapter.prependData(dataSet)
                 if (dataSet.size >= 60) {
                     recycler_view.addOnScrollListener(object :
-                        EndlessRecyclerViewScrollListener(linearLayoutManager) {
+                            EndlessRecyclerViewScrollListener(linearLayoutManager) {
                         override fun onLoadMore(
-                            page: Int,
-                            totalItemsCount: Int,
-                            recyclerView: RecyclerView
+                                page: Int,
+                                totalItemsCount: Int,
+                                recyclerView: RecyclerView
                         ) {
                             presenter.loadAllDirectoryUsers(isSearchForGlobalUsers)
                         }
@@ -176,10 +176,10 @@ class DirectoryFragment : Fragment(), DirectoryView {
     }
 
     fun updateSorting(
-        isSortByChannels: Boolean,
-        isSearchForGlobalUsers: Boolean,
-        query: String? = null,
-        reload: Boolean = false
+            isSortByChannels: Boolean,
+            isSearchForGlobalUsers: Boolean,
+            query: String? = null,
+            reload: Boolean = false
     ) {
         if (query.isNotNullNorBlank() || reload) {
             directoryAdapter.clearData()
@@ -187,7 +187,7 @@ class DirectoryFragment : Fragment(), DirectoryView {
         }
 
         if (this.isSortByChannels != isSortByChannels ||
-            this.isSearchForGlobalUsers != isSearchForGlobalUsers
+                this.isSearchForGlobalUsers != isSearchForGlobalUsers
         ) {
             this.isSortByChannels = isSortByChannels
             this.isSearchForGlobalUsers = isSearchForGlobalUsers
@@ -234,16 +234,16 @@ class DirectoryFragment : Fragment(), DirectoryView {
         if (isSortByChannels) {
             text_sort_by.text = getString(R.string.msg_channels)
             DrawableHelper.compoundStartAndEndDrawable(
-                text_sort_by,
-                hashtagDrawable,
-                arrowDownDrawable
+                    text_sort_by,
+                    hashtagDrawable,
+                    arrowDownDrawable
             )
         } else {
             text_sort_by.text = getString(R.string.msg_users)
             DrawableHelper.compoundStartAndEndDrawable(
-                text_sort_by,
-                userDrawable,
-                arrowDownDrawable
+                    text_sort_by,
+                    userDrawable,
+                    arrowDownDrawable
             )
         }
     }

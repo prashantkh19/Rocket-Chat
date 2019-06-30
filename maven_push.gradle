@@ -1,0 +1,23 @@
+ext {
+    bintrayRepo = 'maven'
+    bintrayOrg = 'abc924'
+    bintrayName = "${GROUP}:${POM_ARTIFACT_ID}"
+
+    publishedGroupId = GROUP
+    libraryName = 'customtoast'
+    bintrayDescription = POM_DESCRIPTION
+    artifact = 'customtoast'
+
+    siteUrl = ''
+    gitUrl = ''
+
+    developerId = 'prashantkh19'
+    developerName = 'Prashant'
+    developerEmail = 'prkh189@gmail.com'
+
+    licenseName = 'The Apache Software License, Version 2.0'
+    licenseUrl = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+    allLicenses = ["Apache-2.0"]
+}
+
+apply from: '../gradle/bintray.gradle'

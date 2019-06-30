@@ -28,11 +28,11 @@ import kotlin.system.measureTimeMillis
 
 class DatabaseManager(val context: Application, val serverUrl: String, val token: Token) {
     private val database: RCDatabase = androidx.room.Room.databaseBuilder(
-        context,
-        RCDatabase::class.java, serverUrl.databaseName()
+            context,
+            RCDatabase::class.java, serverUrl.databaseName()
     )
-        .fallbackToDestructiveMigration()
-        .build()
+            .fallbackToDestructiveMigration()
+            .build()
     private val dbContext = newSingleThreadContext("$serverUrl-db-context")
     private val dbManagerContext = newSingleThreadContext("$serverUrl-db-manager-context")
     private val writeChannel = Channel<Operation>(Channel.UNLIMITED)
@@ -86,6 +86,7 @@ class DatabaseManager(val context: Application, val serverUrl: String, val token
             chatRoomDao().getSync(id)
         }
     }
+
     suspend fun getRoomByName(name: String) = withContext(dbManagerContext) {
         retryDB("getRoom($name)") {
             chatRoomDao().getSyncByName(name)
@@ -134,7 +135,7 @@ class DatabaseManager(val context: Application, val serverUrl: String, val token
                     is Type.Updated -> {
                         when (it.data) {
                             is Subscription -> updateSubs[(it.data as Subscription).roomId] =
-                                it.data as Subscription
+                                    it.data as Subscription
                             is Room -> updateRooms[(it.data as Room).id] = it.data as Room
                         }
                     }
@@ -149,11 +150,11 @@ class DatabaseManager(val context: Application, val serverUrl: String, val token
                 val filteredInsert = toInsert.filterNot { toRemove.contains(it.id) }
 
                 sendOperation(
-                    Operation.UpdateRooms(
-                        filteredInsert,
-                        filteredUpdate,
-                        toRemove.toList()
-                    )
+                        Operation.UpdateRooms(
+                                filteredInsert,
+                                filteredUpdate,
+                                toRemove.toList()
+                        )
                 )
             } catch (ex: Exception) {
                 Timber.d(ex, "Error updating chatrooms")
@@ -165,22 +166,22 @@ class DatabaseManager(val context: Application, val serverUrl: String, val token
         GlobalScope.launch(dbManagerContext) {
             val user = retryDB("getUser(${myself.id})") { userDao().getUser(myself.id) }
             val entity = user?.copy(
-                name = myself.name ?: user.name,
-                username = myself.username ?: user.username,
-                utcOffset = myself.utcOffset ?: user.utcOffset,
-                status = myself.status?.toString() ?: user.status
+                    name = myself.name ?: user.name,
+                    username = myself.username ?: user.username,
+                    utcOffset = myself.utcOffset ?: user.utcOffset,
+                    status = myself.status?.toString() ?: user.status
             ) ?: myself.asUser().toEntity()
 
             if (myself.avatarOrigin != null && myself.active == null &&
-                myself.name == null && myself.username == null
+                    myself.name == null && myself.username == null
             ) {
                 user?.username?.let {
                     Fresco.getImagePipeline().evictFromCache(
-                        serverUrl.avatarUrl(
-                            it,
-                            token.userId,
-                            token.authToken
-                        ).toUri()
+                            serverUrl.avatarUrl(
+                                    it,
+                                    token.userId,
+                                    token.authToken
+                            ).toUri()
                     )
                 }
             }
@@ -227,35 +228,35 @@ class DatabaseManager(val context: Application, val serverUrl: String, val token
     }
 
     private fun createReactions(message: Message): List<BaseMessageEntity>? =
-        message.reactions?.run {
-            if (isNotEmpty()) {
-                val list = mutableListOf<BaseMessageEntity>()
-                keys.forEach { reaction ->
-                    get(reaction)?.let { reactionValue ->
-                        list.add(
-                            ReactionEntity(
-                                reaction,
-                                message.id,
-                                size,
-                                reactionValue.first.joinToString(),
-                                reactionValue.second.joinToString()
+            message.reactions?.run {
+                if (isNotEmpty()) {
+                    val list = mutableListOf<BaseMessageEntity>()
+                    keys.forEach { reaction ->
+                        get(reaction)?.let { reactionValue ->
+                            list.add(
+                                    ReactionEntity(
+                                            reaction,
+                                            message.id,
+                                            size,
+                                            reactionValue.first.joinToString(),
+                                            reactionValue.second.joinToString()
+                                    )
                             )
-                        )
+                        }
                     }
-                }
-                list
-            } else null
-        }
+                    list
+                } else null
+            }
 
     private fun createUrlEntities(message: Message): List<BaseMessageEntity>? = message.urls?.run {
         if (isNotEmpty()) {
             val list = mutableListOf<UrlEntity>()
             forEach { url ->
                 list.add(
-                    UrlEntity(
-                        message.id, url.url, url.parsedUrl?.host, url.meta?.title,
-                        url.meta?.description, url.meta?.imageUrl
-                    )
+                        UrlEntity(
+                                message.id, url.url, url.parsedUrl?.host, url.meta?.title,
+                                url.meta?.description, url.meta?.imageUrl
+                        )
                 )
             }
             list
@@ -263,51 +264,51 @@ class DatabaseManager(val context: Application, val serverUrl: String, val token
     }
 
     private fun createChannelRelations(message: Message): List<BaseMessageEntity>? =
-        message.channels?.run {
-            if (isNotEmpty()) {
-                val list = mutableListOf<MessageChannels>()
-                forEach { channel ->
-                    list.add(MessageChannels(message.id, channel.id, channel.name))
-                }
-                list
-            } else null
-        }
+            message.channels?.run {
+                if (isNotEmpty()) {
+                    val list = mutableListOf<MessageChannels>()
+                    forEach { channel ->
+                        list.add(MessageChannels(message.id, channel.id, channel.name))
+                    }
+                    list
+                } else null
+            }
 
     private suspend fun createMentionRelations(message: Message): List<BaseMessageEntity>? =
-        message.mentions?.run {
-            if (isNotEmpty()) {
-                val list = mutableListOf<MessageMentionsRelation>()
-                filterNot { user -> user.id.isNullOrEmpty() }.forEach { mention ->
-                    insertUserIfMissing(mention)
-                    list.add(MessageMentionsRelation(message.id, mention.id!!))
-                }
-                list
-            } else null
-        }
+            message.mentions?.run {
+                if (isNotEmpty()) {
+                    val list = mutableListOf<MessageMentionsRelation>()
+                    filterNot { user -> user.id.isNullOrEmpty() }.forEach { mention ->
+                        insertUserIfMissing(mention)
+                        list.add(MessageMentionsRelation(message.id, mention.id!!))
+                    }
+                    list
+                } else null
+            }
 
     private suspend fun createFavoriteRelations(message: Message): List<BaseMessageEntity>? =
-        message.starred?.run {
-            if (isNotEmpty()) {
-                val list = mutableListOf<MessageFavoritesRelation>()
-                filterNot { user -> user.id.isNullOrEmpty() }.forEach { userId ->
-                    insertUserIfMissing(userId)
-                    list.add(MessageFavoritesRelation(message.id, userId.id!!))
-                }
-                list
-            } else null
-        }
+            message.starred?.run {
+                if (isNotEmpty()) {
+                    val list = mutableListOf<MessageFavoritesRelation>()
+                    filterNot { user -> user.id.isNullOrEmpty() }.forEach { userId ->
+                        insertUserIfMissing(userId)
+                        list.add(MessageFavoritesRelation(message.id, userId.id!!))
+                    }
+                    list
+                } else null
+            }
 
 
     private fun createAttachments(message: Message): List<BaseMessageEntity>? =
-        message.attachments?.run {
-            if (isNotEmpty()) {
-                val list = ArrayList<BaseMessageEntity>(size)
-                forEach { attachment ->
-                    list.addAll(attachment.asEntity(message.id, context))
-                }
-                list
-            } else null
-        }
+            message.attachments?.run {
+                if (isNotEmpty()) {
+                    val list = ArrayList<BaseMessageEntity>(size)
+                    forEach { attachment ->
+                        list.addAll(attachment.asEntity(message.id, context))
+                    }
+                    list
+                } else null
+            }
 
     private suspend fun createUpdates(): List<ChatRoomEntity> {
         val list = ArrayList<ChatRoomEntity>()
@@ -367,18 +368,18 @@ class DatabaseManager(val context: Application, val serverUrl: String, val token
                 insertUserIfMissing(user)
 
                 chatRoom.copy(
-                    name = name ?: chatRoom.name,
-                    fullname = fullName ?: chatRoom.fullname,
-                    ownerId = user?.id ?: chatRoom.ownerId,
-                    readonly = readonly,
-                    updatedAt = updatedAt ?: chatRoom.updatedAt,
-                    topic = topic,
-                    announcement = announcement,
-                    description = description,
-                    lastMessageText = mapLastMessageText(lastMessage),
-                    lastMessageUserId = lastMessage?.sender?.id,
-                    lastMessageTimestamp = lastMessage?.timestamp,
-                    muted = muted ?: chatRoom.muted
+                        name = name ?: chatRoom.name,
+                        fullname = fullName ?: chatRoom.fullname,
+                        ownerId = user?.id ?: chatRoom.ownerId,
+                        readonly = readonly,
+                        updatedAt = updatedAt ?: chatRoom.updatedAt,
+                        topic = topic,
+                        announcement = announcement,
+                        description = description,
+                        lastMessageText = mapLastMessageText(lastMessage),
+                        lastMessageUserId = lastMessage?.sender?.id,
+                        lastMessageTimestamp = lastMessage?.timestamp,
+                        muted = muted ?: chatRoom.muted
                 )
             }
         }
@@ -406,28 +407,28 @@ class DatabaseManager(val context: Application, val serverUrl: String, val token
 
                 val chatRoom = current.chatRoom
                 chatRoom.copy(
-                    id = roomId,
-                    subscriptionId = id,
-                    type = type.toString(),
-                    name = name
-                        ?: throw NullPointerException(), // this should be filtered on the SDK
-                    fullname = fullName ?: chatRoom.fullname,
-                    userId = userId ?: chatRoom.userId,
-                    readonly = readonly ?: chatRoom.readonly,
-                    isDefault = isDefault,
-                    favorite = isFavorite,
-                    topic = chatRoom.topic,
-                    announcement = chatRoom.announcement,
-                    description = chatRoom.description,
-                    open = open,
-                    alert = alert,
-                    unread = unread,
-                    userMentions = userMentions ?: chatRoom.userMentions,
-                    groupMentions = groupMentions ?: chatRoom.groupMentions,
-                    updatedAt = updatedAt ?: chatRoom.updatedAt,
-                    timestamp = timestamp ?: chatRoom.timestamp,
-                    lastSeen = lastSeen ?: chatRoom.lastSeen,
-                    muted = chatRoom.muted
+                        id = roomId,
+                        subscriptionId = id,
+                        type = type.toString(),
+                        name = name
+                                ?: throw NullPointerException(), // this should be filtered on the SDK
+                        fullname = fullName ?: chatRoom.fullname,
+                        userId = userId ?: chatRoom.userId,
+                        readonly = readonly ?: chatRoom.readonly,
+                        isDefault = isDefault,
+                        favorite = isFavorite,
+                        topic = chatRoom.topic,
+                        announcement = chatRoom.announcement,
+                        description = chatRoom.description,
+                        open = open,
+                        alert = alert,
+                        unread = unread,
+                        userMentions = userMentions ?: chatRoom.userMentions,
+                        groupMentions = groupMentions ?: chatRoom.groupMentions,
+                        updatedAt = updatedAt ?: chatRoom.updatedAt,
+                        timestamp = timestamp ?: chatRoom.timestamp,
+                        lastSeen = lastSeen ?: chatRoom.lastSeen,
+                        muted = chatRoom.muted
                 )
             }
         }
@@ -471,33 +472,33 @@ class DatabaseManager(val context: Application, val serverUrl: String, val token
         insertUserIfMissing(room.user)
 
         return ChatRoomEntity(
-            id = room.id,
-            subscriptionId = subscription.id,
-            parentId = subscription.parentId,
-            type = room.type.toString(),
-            name = room.name ?: subscription.name
-            ?: throw NullPointerException(), // this should be filtered on the SDK
-            fullname = subscription.fullName ?: room.fullName,
-            userId = userId,
-            ownerId = room.user?.id,
-            readonly = subscription.readonly,
-            isDefault = subscription.isDefault,
-            favorite = subscription.isFavorite,
-            topic = room.topic,
-            announcement = room.announcement,
-            description = room.description,
-            open = subscription.open,
-            alert = subscription.alert,
-            unread = subscription.unread,
-            userMentions = subscription.userMentions,
-            groupMentions = subscription.groupMentions,
-            updatedAt = subscription.updatedAt,
-            timestamp = subscription.timestamp,
-            lastSeen = subscription.lastSeen,
-            lastMessageText = mapLastMessageText(room.lastMessage),
-            lastMessageUserId = room.lastMessage?.sender?.id,
-            lastMessageTimestamp = room.lastMessage?.timestamp,
-            broadcast = room.broadcast
+                id = room.id,
+                subscriptionId = subscription.id,
+                parentId = subscription.parentId,
+                type = room.type.toString(),
+                name = room.name ?: subscription.name
+                ?: throw NullPointerException(), // this should be filtered on the SDK
+                fullname = subscription.fullName ?: room.fullName,
+                userId = userId,
+                ownerId = room.user?.id,
+                readonly = subscription.readonly,
+                isDefault = subscription.isDefault,
+                favorite = subscription.isFavorite,
+                topic = room.topic,
+                announcement = room.announcement,
+                description = room.description,
+                open = subscription.open,
+                alert = subscription.alert,
+                unread = subscription.unread,
+                userMentions = subscription.userMentions,
+                groupMentions = subscription.groupMentions,
+                updatedAt = subscription.updatedAt,
+                timestamp = subscription.timestamp,
+                lastSeen = subscription.lastSeen,
+                lastMessageText = mapLastMessageText(room.lastMessage),
+                lastMessageUserId = room.lastMessage?.sender?.id,
+                lastMessageTimestamp = room.lastMessage?.timestamp,
+                broadcast = room.broadcast
         )
     }
 
@@ -513,33 +514,33 @@ class DatabaseManager(val context: Application, val serverUrl: String, val token
             insertUserIfMissing(user)
 
             return ChatRoomEntity(
-                id = id,
-                subscriptionId = subscriptionId,
-                parentId = parentId,
-                type = type.toString(),
-                name = name,
-                fullname = fullName,
-                userId = userId,
-                ownerId = user?.id,
-                readonly = readonly,
-                isDefault = default,
-                favorite = favorite,
-                topic = topic,
-                announcement = announcement,
-                description = description,
-                open = open,
-                alert = alert,
-                unread = unread,
-                userMentions = userMentions,
-                groupMentions = groupMentions,
-                updatedAt = updatedAt,
-                timestamp = timestamp,
-                lastSeen = lastSeen,
-                lastMessageText = mapLastMessageText(lastMessage),
-                lastMessageUserId = lastMessage?.sender?.id,
-                lastMessageTimestamp = lastMessage?.timestamp,
-                broadcast = broadcast,
-                muted = room.muted
+                    id = id,
+                    subscriptionId = subscriptionId,
+                    parentId = parentId,
+                    type = type.toString(),
+                    name = name,
+                    fullname = fullName,
+                    userId = userId,
+                    ownerId = user?.id,
+                    readonly = readonly,
+                    isDefault = default,
+                    favorite = favorite,
+                    topic = topic,
+                    announcement = announcement,
+                    description = description,
+                    open = open,
+                    alert = alert,
+                    unread = unread,
+                    userMentions = userMentions,
+                    groupMentions = groupMentions,
+                    updatedAt = updatedAt,
+                    timestamp = timestamp,
+                    lastSeen = lastSeen,
+                    lastMessageText = mapLastMessageText(lastMessage),
+                    lastMessageUserId = lastMessage?.sender?.id,
+                    lastMessageTimestamp = lastMessage?.timestamp,
+                    broadcast = broadcast,
+                    muted = room.muted
             )
         }
     }
@@ -569,7 +570,7 @@ class DatabaseManager(val context: Application, val serverUrl: String, val token
     }
 
     private suspend fun findUser(userId: String): String? =
-        retryDB("findUser($userId)") { userDao().findUser(userId) }
+            retryDB("findUser($userId)") { userDao().findUser(userId) }
 
     private suspend fun doOperation(operation: Operation) {
         retryDB(description = "doOperation($operation)") {
@@ -598,9 +599,9 @@ sealed class Operation {
     object ClearStatus : Operation()
 
     data class UpdateRooms(
-        val toInsert: List<ChatRoomEntity>,
-        val toUpdate: List<ChatRoomEntity>,
-        val toRemove: List<String>
+            val toInsert: List<ChatRoomEntity>,
+            val toUpdate: List<ChatRoomEntity>,
+            val toRemove: List<String>
     ) : Operation()
 
     data class InsertRooms(val chatRooms: List<ChatRoomEntity>) : Operation()
@@ -611,7 +612,7 @@ sealed class Operation {
     data class InsertUser(val user: UserEntity) : Operation()
 
     data class InsertMessages(val list: List<Pair<MessageEntity, List<BaseMessageEntity>>>) :
-        Operation()
+            Operation()
 
     data class SaveLastSync(val sync: MessagesSync) : Operation()
 }
@@ -632,10 +633,10 @@ private fun Myself.asUser(): User {
 
 private fun String.databaseName(): String {
     val tmp = this.removePrefix("https://")
-        .removePrefix("http://")
-        .removeTrailingSlash()
-        .replace("/", "-")
-        .replace(".", "_")
+            .removePrefix("http://")
+            .removeTrailingSlash()
+            .replace("/", "-")
+            .replace(".", "_")
 
     return "$tmp.db"
 }

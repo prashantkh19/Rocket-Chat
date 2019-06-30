@@ -50,26 +50,26 @@ class MainNavigator(internal val activity: MainActivity) {
     }
 
     fun toChatRoom(
-        chatRoomId: String,
-        chatRoomName: String,
-        chatRoomType: String,
-        isReadOnly: Boolean,
-        chatRoomLastSeen: Long,
-        isSubscribed: Boolean,
-        isCreator: Boolean,
-        isFavorite: Boolean
+            chatRoomId: String,
+            chatRoomName: String,
+            chatRoomType: String,
+            isReadOnly: Boolean,
+            chatRoomLastSeen: Long,
+            isSubscribed: Boolean,
+            isCreator: Boolean,
+            isFavorite: Boolean
     ) {
         activity.startActivity(
-            activity.chatRoomIntent(
-                chatRoomId,
-                chatRoomName,
-                chatRoomType,
-                isReadOnly,
-                chatRoomLastSeen,
-                isSubscribed,
-                isCreator,
-                isFavorite
-            )
+                activity.chatRoomIntent(
+                        chatRoomId,
+                        chatRoomName,
+                        chatRoomType,
+                        isReadOnly,
+                        chatRoomLastSeen,
+                        isSubscribed,
+                        isCreator,
+                        isFavorite
+                )
         )
         activity.overridePendingTransition(R.anim.open_enter, R.anim.open_exit)
     }

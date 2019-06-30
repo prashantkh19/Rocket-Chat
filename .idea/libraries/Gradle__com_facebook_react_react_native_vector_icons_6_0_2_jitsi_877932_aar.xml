@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="Gradle: com.facebook.react:react-native-vector-icons:6.0.2-jitsi-877932@aar">
+    <CLASSES>
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/d91de8242cb5ea05271655b08bcce539/res" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/d91de8242cb5ea05271655b08bcce539/jars/classes.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.facebook.react/react-native-vector-icons/6.0.2-jitsi-877932/8ae73725ef687bd0af33fb90b8cb821a257a038f/react-native-vector-icons-6.0.2-jitsi-877932-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

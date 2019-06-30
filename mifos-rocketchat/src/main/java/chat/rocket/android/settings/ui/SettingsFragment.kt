@@ -40,22 +40,22 @@ class SettingsFragment : Fragment(), SettingsView, AppLanguageView {
     @Inject
     lateinit var presenter: SettingsPresenter
     private val locales = arrayListOf(
-        "en",
-        "ar",
-        "de",
-        "es",
-        "fa",
-        "fr",
-        "hi,IN",
-        "it",
-        "ja",
-        "pt,BR",
-        "pt,PT",
-        "ru,RU",
-        "tr",
-        "uk",
-        "zh,CN",
-        "zh,TW"
+            "en",
+            "ar",
+            "de",
+            "es",
+            "fa",
+            "fr",
+            "hi,IN",
+            "it",
+            "ja",
+            "pt,BR",
+            "pt,PT",
+            "ru,RU",
+            "tr",
+            "uk",
+            "zh,CN",
+            "zh,TW"
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -64,9 +64,9 @@ class SettingsFragment : Fragment(), SettingsView, AppLanguageView {
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+            inflater: LayoutInflater,
+            container: ViewGroup?,
+            savedInstanceState: Bundle?
     ): View? = container?.inflate(R.layout.fragment_settings)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -77,13 +77,13 @@ class SettingsFragment : Fragment(), SettingsView, AppLanguageView {
     }
 
     override fun setupSettingsView(
-        avatar: String,
-        displayName: String,
-        status: String,
-        isAdministrationEnabled: Boolean,
-        isAnalyticsTrackingEnabled: Boolean,
-        isDeleteAccountEnabled: Boolean,
-        serverVersion: String
+            avatar: String,
+            displayName: String,
+            status: String,
+            isAdministrationEnabled: Boolean,
+            isAnalyticsTrackingEnabled: Boolean,
+            isDeleteAccountEnabled: Boolean,
+            serverVersion: String
     ) {
         image_avatar.setImageURI(avatar)
 
@@ -132,7 +132,7 @@ class SettingsFragment : Fragment(), SettingsView, AppLanguageView {
 
     override fun updateLanguage(language: String, country: String?) {
         presenter.saveLocale(language, country)
-        presenter.recreateActivity()
+        activity?.recreate()
     }
 
     override fun invalidateToken(token: String) = invalidateFirebaseToken(token)
@@ -168,8 +168,8 @@ class SettingsFragment : Fragment(), SettingsView, AppLanguageView {
 
     private fun contactSupport() {
         val uriText = "mailto:${"support@rocket.chat"}" +
-            "?subject=" + Uri.encode(getString(R.string.msg_android_app_support)) +
-            "&body=" + Uri.encode(getDeviceAndAppInformation())
+                "?subject=" + Uri.encode(getString(R.string.msg_android_app_support)) +
+                "&body=" + Uri.encode(getDeviceAndAppInformation())
 
         with(Intent(Intent.ACTION_SENDTO)) {
             data = uriText.toUri()
@@ -201,20 +201,20 @@ class SettingsFragment : Fragment(), SettingsView, AppLanguageView {
                 }
             }
             AlertDialog.Builder(it)
-                .setTitle(R.string.title_choose_language)
-                .setSingleChoiceItems(
-                    resources.getStringArray(R.array.languages), localeIndex
-                ) { dialog, option ->
-                    val array = locales[option].split(",")
-                    if (array.size > 1) {
-                        updateLanguage(array[0], array[1])
-                    } else {
-                        updateLanguage(array[0])
+                    .setTitle(R.string.title_choose_language)
+                    .setSingleChoiceItems(
+                            resources.getStringArray(R.array.languages), localeIndex
+                    ) { dialog, option ->
+                        val array = locales[option].split(",")
+                        if (array.size > 1) {
+                            updateLanguage(array[0], array[1])
+                        } else {
+                            updateLanguage(array[0])
+                        }
+                        dialog.dismiss()
                     }
-                    dialog.dismiss()
-                }
-                .create()
-                .show()
+                    .create()
+                    .show()
         }
     }
 
@@ -239,21 +239,21 @@ class SettingsFragment : Fragment(), SettingsView, AppLanguageView {
         context?.let {
             val builder = AlertDialog.Builder(it)
             builder.setTitle(R.string.title_are_you_sure)
-                .setPositiveButton(R.string.action_logout) { _, _ -> presenter.logout() }
-                .setNegativeButton(android.R.string.no) { dialog, _ -> dialog.cancel() }
-                .create()
-                .show()
+                    .setPositiveButton(R.string.action_logout) { _, _ -> presenter.logout() }
+                    .setNegativeButton(android.R.string.no) { dialog, _ -> dialog.cancel() }
+                    .create()
+                    .show()
         }
     }
 
     private fun showDeleteAccountDialog() {
         context?.let {
             AlertDialog.Builder(it)
-                .setView(LayoutInflater.from(it).inflate(R.layout.dialog_delete_account, null))
-                .setPositiveButton(R.string.msg_delete_account) { _, _ ->
-                    presenter.deleteAccount(EditText(context).text.toString())
-                }.setNegativeButton(android.R.string.no) { dialog, _ -> dialog.cancel() }.create()
-                .show()
+                    .setView(LayoutInflater.from(it).inflate(R.layout.dialog_delete_account, null))
+                    .setPositiveButton(R.string.msg_delete_account) { _, _ ->
+                        presenter.deleteAccount(EditText(context).text.toString())
+                    }.setNegativeButton(android.R.string.no) { dialog, _ -> dialog.cancel() }.create()
+                    .show()
         }
     }
 }

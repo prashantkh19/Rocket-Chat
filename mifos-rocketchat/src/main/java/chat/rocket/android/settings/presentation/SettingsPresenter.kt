@@ -6,12 +6,7 @@ import chat.rocket.android.core.lifecycle.CancelStrategy
 import chat.rocket.android.db.DatabaseManagerFactory
 import chat.rocket.android.helper.UserHelper
 import chat.rocket.android.main.presentation.MainNavigator
-import chat.rocket.android.server.domain.AnalyticsTrackingInteractor
-import chat.rocket.android.server.domain.GetCurrentServerInteractor
-import chat.rocket.android.server.domain.PermissionsInteractor
-import chat.rocket.android.server.domain.RemoveAccountInteractor
-import chat.rocket.android.server.domain.SaveCurrentLanguageInteractor
-import chat.rocket.android.server.domain.TokenRepository
+import chat.rocket.android.server.domain.*
 import chat.rocket.android.server.infrastructure.ConnectionManagerFactory
 import chat.rocket.android.server.infrastructure.RocketChatClientFactory
 import chat.rocket.android.server.presentation.CheckServerPresenter
@@ -33,30 +28,30 @@ import javax.inject.Inject
 import javax.inject.Named
 
 class SettingsPresenter @Inject constructor(
-    private val view: SettingsView,
-    private val strategy: CancelStrategy,
-    private val navigator: MainNavigator,
-    @Named("currentServer") private val currentServer: String,
-    private val userHelper: UserHelper,
-    private val analyticsTrackingInteractor: AnalyticsTrackingInteractor,
-    private val tokenRepository: TokenRepository,
-    private val permissions: PermissionsInteractor,
-    private val rocketChatClientFactory: RocketChatClientFactory,
-    private val saveLanguageInteractor: SaveCurrentLanguageInteractor,
-    getCurrentServerInteractor: GetCurrentServerInteractor,
-    removeAccountInteractor: RemoveAccountInteractor,
-    databaseManagerFactory: DatabaseManagerFactory,
-    connectionManagerFactory: ConnectionManagerFactory
+        private val view: SettingsView,
+        private val strategy: CancelStrategy,
+        private val navigator: MainNavigator,
+        @Named("currentServer") private val currentServer: String,
+        private val userHelper: UserHelper,
+        private val analyticsTrackingInteractor: AnalyticsTrackingInteractor,
+        private val tokenRepository: TokenRepository,
+        private val permissions: PermissionsInteractor,
+        private val rocketChatClientFactory: RocketChatClientFactory,
+        private val saveLanguageInteractor: SaveCurrentLanguageInteractor,
+        getCurrentServerInteractor: GetCurrentServerInteractor,
+        removeAccountInteractor: RemoveAccountInteractor,
+        databaseManagerFactory: DatabaseManagerFactory,
+        connectionManagerFactory: ConnectionManagerFactory
 ) : CheckServerPresenter(
-    strategy = strategy,
-    factory = rocketChatClientFactory,
-    serverInteractor = getCurrentServerInteractor,
-    removeAccountInteractor = removeAccountInteractor,
-    tokenRepository = tokenRepository,
-    dbManagerFactory = databaseManagerFactory,
-    managerFactory = connectionManagerFactory,
-    tokenView = view,
-    navigator = navigator
+        strategy = strategy,
+        factory = rocketChatClientFactory,
+        serverInteractor = getCurrentServerInteractor,
+        removeAccountInteractor = removeAccountInteractor,
+        tokenRepository = tokenRepository,
+        dbManagerFactory = databaseManagerFactory,
+        managerFactory = connectionManagerFactory,
+        tokenView = view,
+        navigator = navigator
 ) {
     private val token = tokenRepository.get(currentServer)
 
@@ -73,13 +68,13 @@ class SettingsPresenter @Inject constructor(
 
                 userHelper.user()?.let { user ->
                     view.setupSettingsView(
-                        currentServer.avatarUrl(me.username!!, token?.userId, token?.authToken),
-                        userHelper.displayName(user) ?: me.username ?: "",
-                        me.status.toString(),
-                        permissions.isAdministrationEnabled(),
-                        analyticsTrackingInteractor.get(),
-                        true,
-                        serverInfo.version
+                            currentServer.avatarUrl(me.username!!, token?.userId, token?.authToken),
+                            userHelper.displayName(user) ?: me.username ?: "",
+                            me.status.toString(),
+                            permissions.isAdministrationEnabled(),
+                            analyticsTrackingInteractor.get(),
+                            true,
+                            serverInfo.version
                     )
                 }
             } catch (exception: Exception) {
@@ -111,7 +106,7 @@ class SettingsPresenter @Inject constructor(
                     // https://github.com/RocketChat/Rocket.Chat/issues/12573
                     retryIO {
                         rocketChatClientFactory.get(currentServer)
-                            .deleteOwnAccount(password.gethash().toHex().toLowerCase())
+                                .deleteOwnAccount(password.gethash().toHex().toLowerCase())
                     }
                     setupConnectionInfo(currentServer)
                     logout(null)
@@ -147,5 +142,5 @@ class SettingsPresenter @Inject constructor(
     }
 
     fun toLicense(licenseUrl: String, licenseTitle: String) =
-        navigator.toLicense(licenseUrl, licenseTitle)
+            navigator.toLicense(licenseUrl, licenseTitle)
 }

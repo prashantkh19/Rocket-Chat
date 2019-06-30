@@ -9,15 +9,13 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.FragmentManager
 import chat.rocket.android.R
-import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.android.synthetic.main.bottom_sheet_fragment_directory_sorting.*
 
 fun showDirectorySortingBottomSheetFragment(
-    isSortByChannels: Boolean,
-    isSearchForGlobalUsers: Boolean,
-    supportFragmentManager: FragmentManager
+        isSortByChannels: Boolean,
+        isSearchForGlobalUsers: Boolean,
+        supportFragmentManager: FragmentManager
 ) = DirectorySortingBottomSheetFragment().apply {
     arguments = Bundle(2).apply {
         putBoolean(BUNDLE_IS_SORT_BY_CHANNELS, isSortByChannels)
@@ -52,15 +50,15 @@ class DirectorySortingBottomSheetFragment : BottomSheetDialogFragment() {
             isSortByChannels = getBoolean(BUNDLE_IS_SORT_BY_CHANNELS)
             isSearchForGlobalUsers = getBoolean(BUNDLE_IS_SEARCH_FOR_GLOBAL_USERS)
         }
-            ?: requireNotNull(arguments) { "no arguments supplied when the bottom sheet fragment was instantiated" }
+                ?: requireNotNull(arguments) { "no arguments supplied when the bottom sheet fragment was instantiated" }
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+            inflater: LayoutInflater,
+            container: ViewGroup?,
+            savedInstanceState: Bundle?
     ): View? =
-        inflater.inflate(R.layout.bottom_sheet_fragment_directory_sorting, container, false)
+            inflater.inflate(R.layout.bottom_sheet_fragment_directory_sorting, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -79,15 +77,6 @@ class DirectorySortingBottomSheetFragment : BottomSheetDialogFragment() {
     }
 
     private fun setupListeners() {
-        dialog.setOnShowListener { dialog ->
-            val bottomSheet = (dialog as BottomSheetDialog).findViewById<View>(
-                com.google.android.material.R.id.design_bottom_sheet
-            )
-            bottomSheet?.let {
-                BottomSheetBehavior.from(bottomSheet).peekHeight = bottomSheet.height
-            }
-        }
-
         text_channels.setOnClickListener {
             checkSelection(text_channels, hashtagDrawable)
             uncheckSelection(text_users, userDrawable)
@@ -111,9 +100,9 @@ class DirectorySortingBottomSheetFragment : BottomSheetDialogFragment() {
     private fun checkSelection(textView: TextView, startDrawable: Drawable) {
         context?.let {
             DrawableHelper.compoundStartAndEndDrawable(
-                textView,
-                startDrawable,
-                checkDrawable
+                    textView,
+                    startDrawable,
+                    checkDrawable
             )
         }
     }
@@ -121,8 +110,8 @@ class DirectorySortingBottomSheetFragment : BottomSheetDialogFragment() {
     private fun uncheckSelection(textView: TextView, startDrawable: Drawable) {
         context?.let {
             DrawableHelper.compoundStartDrawable(
-                textView,
-                startDrawable
+                    textView,
+                    startDrawable
             )
         }
     }
