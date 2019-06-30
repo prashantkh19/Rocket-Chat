@@ -3,9 +3,6 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
 
-project.group = GROUP
-version = VERSION_NAME
-
 android {
     compileSdkVersion versions.compileSdk
     buildToolsVersion versions.buildTools
@@ -13,6 +10,8 @@ android {
     defaultConfig {
         minSdkVersion versions.minSdk
         targetSdkVersion versions.targetSdk
+        versionCode 1
+        versionName "1.0.0"
     }
 
     buildTypes {
@@ -24,6 +23,23 @@ android {
         debug {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    // Since we are using the util module here, we need to declare the same flavorDimensions and
+    // productFlavors from there.
+
+    flavorDimensions "type"
+
+    productFlavors {
+        // includes proprietary libs
+        play {
+            dimension "type"
+        }
+
+        // only foss
+        foss {
+            dimension "type"
         }
     }
 }
@@ -47,5 +63,3 @@ dependencies {
     kapt libraries.daggerProcessor
     kapt libraries.daggerAndroidApt
 }
-
-apply from: '../maven_push.gradle'

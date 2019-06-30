@@ -1,1 +1,1 @@
-include ':mifos-rocketchat', ':player', ':emoji', ':draw', ':util', ':core', ':suggestions', ':sample'
+include ':app', ':player', ':emoji', ':draw', ':util', ':core', ':suggestions'
