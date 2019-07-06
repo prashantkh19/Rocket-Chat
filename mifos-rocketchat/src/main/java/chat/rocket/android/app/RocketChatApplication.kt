@@ -28,6 +28,7 @@ import com.facebook.drawee.backends.pipeline.DraweeConfig
 import com.facebook.drawee.backends.pipeline.Fresco
 import com.facebook.imagepipeline.core.ImagePipelineConfig
 import com.jakewharton.threetenabp.AndroidThreeTen
+import dagger.android.AndroidInjector
 import dagger.android.DispatchingAndroidInjector
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -38,42 +39,43 @@ import javax.inject.Inject
 open class RocketChatApplication(val application: Application) {
 
     @Inject
-    lateinit var appLifecycleObserver: AppLifecycleObserver
+    internal lateinit var appLifecycleObserver: AppLifecycleObserver
 
     @Inject
-    lateinit var activityDispatchingAndroidInjector: DispatchingAndroidInjector<Activity>
+    internal lateinit var activityDispatchingAndroidInjector: DispatchingAndroidInjector<Activity>
 
     @Inject
-    lateinit var serviceDispatchingAndroidInjector: DispatchingAndroidInjector<Service>
+    internal lateinit var serviceDispatchingAndroidInjector: DispatchingAndroidInjector<Service>
 
     @Inject
-    lateinit var broadcastReceiverInjector: DispatchingAndroidInjector<BroadcastReceiver>
+    internal lateinit var broadcastReceiverInjector: DispatchingAndroidInjector<BroadcastReceiver>
 
     @Inject
-    lateinit var workerInjector: DispatchingAndroidInjector<Worker>
+    internal lateinit var workerInjector: DispatchingAndroidInjector<Worker>
 
     @Inject
-    lateinit var imagePipelineConfig: ImagePipelineConfig
+    internal lateinit var imagePipelineConfig: ImagePipelineConfig
+
     @Inject
-    lateinit var draweeConfig: DraweeConfig
+    internal lateinit var draweeConfig: DraweeConfig
 
     // TODO - remove this from here when we have a proper service handling the connection.
     @Inject
-    lateinit var getCurrentServerInteractor: GetCurrentServerInteractor
+    internal lateinit var getCurrentServerInteractor: GetCurrentServerInteractor
     @Inject
-    lateinit var settingsInteractor: GetSettingsInteractor
+    internal lateinit var settingsInteractor: GetSettingsInteractor
     @Inject
-    lateinit var tokenRepository: TokenRepository
+    internal lateinit var tokenRepository: TokenRepository
     @Inject
-    lateinit var localRepository: LocalRepository
+    internal lateinit var localRepository: LocalRepository
     @Inject
-    lateinit var accountRepository: AccountsRepository
+    internal lateinit var accountRepository: AccountsRepository
     @Inject
-    lateinit var factory: RocketChatClientFactory
+    internal lateinit var factory: RocketChatClientFactory
 
     @Inject
     @field:ForMessages
-    lateinit var messagesPrefs: SharedPreferences
+    internal lateinit var messagesPrefs: SharedPreferences
 
     fun init() {
         DaggerAppComponent.builder()
@@ -140,19 +142,21 @@ open class RocketChatApplication(val application: Application) {
         }
     }
 
-    fun activityInjector(): Any = activityDispatchingAndroidInjector
+    fun activityInjector(): AndroidInjector<Activity> = activityDispatchingAndroidInjector
 
-    fun serviceInjector(): Any = serviceDispatchingAndroidInjector
+    fun serviceInjector(): AndroidInjector<Service> = serviceDispatchingAndroidInjector
 
-    fun broadcastReceiverInjector(): Any = broadcastReceiverInjector
+    fun broadcastReceiverInjector(): AndroidInjector<BroadcastReceiver> = broadcastReceiverInjector
 
-    fun workerInjector(): Any = workerInjector
+    fun workerInjector(): AndroidInjector<Worker> = workerInjector
 
     companion object {
         var context: WeakReference<Context>? = null
         fun getAppContext(): Context? {
             return context?.get()
         }
+
+        fun instance(application: Application) = RocketChatApplication(application)
     }
 
     // TODO - FIXME - This is a big Workaround

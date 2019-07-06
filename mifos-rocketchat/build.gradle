@@ -99,6 +99,7 @@ dependencies {
     implementation libraries.androidKtx
     implementation libraries.fragmentsKtx
 
+    //dagger
     api libraries.dagger
     api libraries.daggerSupport
     kapt libraries.daggerProcessor
@@ -112,7 +113,7 @@ dependencies {
     implementation libraries.lifecycleExtensions
     kapt libraries.lifecycleCompiler
     implementation libraries.viewmodelKtx
-    implementation libraries.workmanager
+    api libraries.workmanager
 
     implementation libraries.livedataKtx
 
