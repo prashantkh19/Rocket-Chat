@@ -35,7 +35,7 @@ import timber.log.Timber
 import javax.inject.Inject
 
 class AuthenticationPresenter @Inject constructor(
-        private val view: AuthenticationView,
+        private val view: RocketChatView,
         private val strategy: CancelStrategy,
         private val navigator: AuthenticationNavigator,
         private val getCurrentServerInteractor: GetCurrentServerInteractor,

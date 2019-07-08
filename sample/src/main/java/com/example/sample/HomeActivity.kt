@@ -2,11 +2,12 @@ package com.example.sample
 
 import android.content.Intent
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import chat.rocket.android.authentication.RocketChat
 import chat.rocket.android.authentication.STATE_ERROR
 import chat.rocket.android.authentication.STATE_READY
-import chat.rocket.android.authentication.TemplateActivity
+import chat.rocket.android.authentication.presentation.RocketChatView
 import chat.rocket.android.helper.saveCredentials
 import chat.rocket.android.util.extensions.showToast
 import kotlinx.android.synthetic.main.home_activity.*
@@ -25,9 +26,9 @@ const val userPassword = "password"
 
 const val roomName = "self_service_user"
 
-class HomeActivity : TemplateActivity() {
+class HomeActivity : AppCompatActivity(), RocketChatView {
 
-    private lateinit var rocketChat: RocketChat
+    private lateinit var rocketChat: RocketChat<HomeActivity>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

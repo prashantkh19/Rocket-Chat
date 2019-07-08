@@ -34,7 +34,7 @@ import dagger.android.ContributesAndroidInjector
 abstract class ActivityBuilder {
 //
 //    @PerActivity
-//    @ContributesAndroidInjector(modules = [TemplateModule::class])
+//    @ContributesAndroidInjector(modules = [RocketChatModule::class])
 //    abstract fun bindAuthenticationActivity(): TemplateActivity
 
     @PerActivity

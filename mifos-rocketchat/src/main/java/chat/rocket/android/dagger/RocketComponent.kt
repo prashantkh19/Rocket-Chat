@@ -1,9 +1,9 @@
 package chat.rocket.android.dagger
 
 import android.app.Application
-import chat.rocket.android.authentication.RocketChat
-import chat.rocket.android.authentication.TemplateActivity
-import chat.rocket.android.authentication.di.TemplateModule
+import androidx.appcompat.app.AppCompatActivity
+import chat.rocket.android.authentication.RocketChatWrapper
+import chat.rocket.android.authentication.di.RocketChatModule
 import chat.rocket.android.dagger.module.AppModule
 import chat.rocket.android.dagger.scope.PerActivity
 import dagger.BindsInstance
@@ -13,7 +13,7 @@ import javax.inject.Singleton
 
 @Singleton
 @PerActivity
-@Component(modules = [TemplateModule::class, AppModule::class]
+@Component(modules = [RocketChatModule::class, AppModule::class]
 )
 interface RocketComponent {
 
@@ -25,9 +25,9 @@ interface RocketComponent {
         fun build(): RocketComponent
 
         @BindsInstance
-        fun activity(templateActivity: TemplateActivity): Builder
+        fun activity(activity: AppCompatActivity): Builder
     }
 
-    fun inject(obj: RocketChat)
+    fun inject(obj: RocketChatWrapper)
 
 }

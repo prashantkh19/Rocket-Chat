@@ -1,27 +1,49 @@
 package chat.rocket.android.authentication
 
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.MutableLiveData
 import chat.rocket.android.authentication.presentation.AuthenticationPresenter
+import chat.rocket.android.authentication.presentation.RocketChatView
 import chat.rocket.android.dagger.DaggerRocketComponent
-import javax.inject.Inject
 
-class RocketChat constructor(activity: TemplateActivity,
-                             protocol: String,
-                             serverDomain: String,
-                             name: String,
-                             userName: String,
-                             userEmail: String,
-                             userPassword: String,
-                             roomName: String) {
+class RocketChat<T> constructor(activity: T,
+                                protocol: String,
+                                val serverDomain: String,
+                                name: String,
+                                userName: String,
+                                userEmail: String,
+                                userPassword: String,
+                                roomName: String) where T : AppCompatActivity, T : RocketChatView {
 
-    @Inject
-    lateinit var presenter: AuthenticationPresenter
+    internal var presenter: AuthenticationPresenter
 
     init {
+        val wrapper = RocketChatWrapper()
         DaggerRocketComponent.builder()
                 .application(activity.application)
                 .activity(activity)
-                .build().inject(this)
+                .build()
+                .inject(wrapper)
+
+        presenter = AuthenticationPresenter(activity,
+                wrapper.strategy,
+                wrapper.navigator,
+                wrapper.getCurrentServerInteractor,
+                wrapper.getAccountInteractor,
+                wrapper.settingsRepository,
+                wrapper.localRepository,
+                wrapper.tokenRepository,
+                wrapper.saveServerInteractor,
+                wrapper.refreshSettingsInteractor,
+                wrapper.getAccountsInteractor,
+                wrapper.settingsInteractor,
+                wrapper.saveCurrentServer,
+                wrapper.factory,
+                wrapper.saveAccountInteractor,
+                wrapper.analyticsManager,
+                wrapper.dbManagerFactory,
+                wrapper.userHelper
+        )
 
         presenter.setConnectionParams(
                 protocol,
