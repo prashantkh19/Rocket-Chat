@@ -1,7 +1,7 @@
 package chat.rocket.android.dagger
 
 import android.app.Application
-import chat.rocket.android.app.RocketChatApplication
+import chat.rocket.android.app.RocketChatInitializer
 import chat.rocket.android.chatroom.service.MessageService
 import chat.rocket.android.dagger.module.*
 import dagger.BindsInstance
@@ -29,7 +29,7 @@ interface AppComponent {
         fun build(): AppComponent
     }
 
-    fun inject(app: RocketChatApplication)
+    fun inject(app: RocketChatInitializer)
 
     fun inject(app: Application)
 

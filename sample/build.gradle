@@ -61,7 +61,7 @@ dependencies {
     androidTestImplementation 'androidx.test:runner:1.2.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 
-//    implementation 'chat.rocket.android:mifos-rocketchat:1.0.4'
+//    implementation 'chat.rocket.android:mifos-rocketchat:1.0.6'
 
     implementation (project(path: ':mifos-rocketchat'))
     annotationProcessor "com.google.dagger:dagger-compiler:2.16"

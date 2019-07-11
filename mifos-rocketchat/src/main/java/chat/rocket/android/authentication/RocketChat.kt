@@ -56,7 +56,7 @@ class RocketChat<T> constructor(activity: T,
     }
 
     fun getState(): MutableLiveData<String> {
-        return presenter.authState
+        return presenter.setupState
     }
 
     fun loadCredentials() {
@@ -92,3 +92,6 @@ class RocketChat<T> constructor(activity: T,
 const val STATE_LOADING = "state_loading"
 const val STATE_READY = "state_ready"
 const val STATE_ERROR = "state_error"
+const val INVALID_SERVER_URL = "invalid_server_url"
+
+

@@ -1,13 +1,12 @@
 package chat.rocket.android.authentication.presentation
 
 import androidx.lifecycle.MutableLiveData
-import chat.rocket.android.R
 import chat.rocket.android.analytics.AnalyticsManager
 import chat.rocket.android.analytics.event.AuthenticationEvent
+import chat.rocket.android.authentication.INVALID_SERVER_URL
 import chat.rocket.android.authentication.STATE_ERROR
 import chat.rocket.android.authentication.STATE_LOADING
 import chat.rocket.android.authentication.STATE_READY
-import chat.rocket.android.core.behaviours.showMessage
 import chat.rocket.android.core.lifecycle.CancelStrategy
 import chat.rocket.android.db.DatabaseManager
 import chat.rocket.android.db.DatabaseManagerFactory
@@ -73,7 +72,8 @@ class AuthenticationPresenter @Inject constructor(
     private lateinit var client: RocketChatClient
     private lateinit var settings: PublicSettings
 
-    var authState: MutableLiveData<String> = MutableLiveData()
+    var setupState: MutableLiveData<String> = MutableLiveData()
+    var message: String = ""
 
     fun setConnectionParams(protocol: String, serverDomain: String, name: String, userName: String,
                             userEmail: String, userPassword: String, roomName: String) {
@@ -83,7 +83,8 @@ class AuthenticationPresenter @Inject constructor(
         this.userEmail = userEmail
         this.userPassword = userPassword
         this.roomName = roomName
-        authState.value = STATE_LOADING
+        setupState.value = STATE_LOADING
+        message = ""
     }
 
     fun loadCredentials(callback: (isAuthenticated: Boolean) -> Unit) {
@@ -111,12 +112,20 @@ class AuthenticationPresenter @Inject constructor(
 
     fun checkServer() {
         if (!currentServer.isValidUrl()) {
-            authState.value = STATE_LOADING
-            view.showInvalidServerUrlMessage()
+            setupState.value = STATE_ERROR
+            message = INVALID_SERVER_URL
         } else {
-            view.showLoading()
+            setupState.value = STATE_LOADING
             setupConnectionInfo(currentServer)
-            checkServerInfo(currentServer)
+            launchUI(strategy) {
+                val result = checkServerInfoSuspended(currentServer)
+                if (!result) {
+                    setupState.value = STATE_ERROR
+                    message = "Error getting server info"
+                } else {
+                    connect()
+                }
+            }
         }
     }
 
@@ -136,7 +145,8 @@ class AuthenticationPresenter @Inject constructor(
 
     private fun connectToServer(serverUrl: String, block: () -> Unit) {
         if (!serverUrl.isValidUrl()) {
-            view.showInvalidServerUrlMessage()
+            setupState.value = STATE_ERROR
+            message = INVALID_SERVER_URL
         } else {
             launchUI(strategy) {
                 // Check if we already have an account for this server...
@@ -145,7 +155,6 @@ class AuthenticationPresenter @Inject constructor(
                     toChatRoom()
                     return@launchUI
                 }
-                view.showLoading()
                 try {
                     withContext(Dispatchers.Default) {
                         refreshServerAccounts()
@@ -156,10 +165,8 @@ class AuthenticationPresenter @Inject constructor(
                         block()
                     }
                 } catch (ex: Exception) {
-                    authState.value = STATE_ERROR
-                    view.showMessage(ex)
-                } finally {
-                    view.hideLoading()
+                    setupState.value = STATE_ERROR
+                    message = ex.message.toString()
                 }
             }
         }
@@ -167,7 +174,6 @@ class AuthenticationPresenter @Inject constructor(
 
     private fun authenticateWithUserAndPassword(usernameOrEmail: String, password: String) {
         launchUI(strategy) {
-            view.showLoading()
             try {
                 val token = retryIO("login") {
                     when {
@@ -210,13 +216,13 @@ class AuthenticationPresenter @Inject constructor(
                                 userPassword,
                                 userEmail)
                     } else {
-                        view.showMessage(it)
+                        setupState.value = STATE_ERROR
+                        message = it
                     }
                 }.ifNull {
-                    view.showGenericErrorMessage()
+                    setupState.value = STATE_ERROR
+                    message = "Generic Error Message"
                 }
-            } finally {
-                view.hideLoading()
             }
         }
 
@@ -246,7 +252,6 @@ class AuthenticationPresenter @Inject constructor(
     private fun signup(name: String, username: String, password: String, email: String) {
         val client = factory.get(currentServer)
         launchUI(strategy) {
-            view.showLoading()
             try {
                 // TODO This function returns a user so should we save it?
                 retryIO("signup") { client.signup(email, name, username, password) }
@@ -263,14 +268,13 @@ class AuthenticationPresenter @Inject constructor(
                 view.saveSmartLockCredentials(username, password)
                 toChatRoom()
             } catch (exception: RocketChatException) {
-                authState.value = STATE_ERROR
+                setupState.value = STATE_ERROR
                 exception.message?.let {
-                    view.showMessage(it)
+                    message = it
                 }.ifNull {
-                    view.showGenericErrorMessage()
+                    setupState.value = STATE_ERROR
+                    message = "Generic Error Message"
                 }
-            } finally {
-                view.hideLoading()
             }
         }
     }
@@ -310,6 +314,10 @@ class AuthenticationPresenter @Inject constructor(
                 refreshChatRooms()
                 checkChatRoom(roomName)
             } catch (ex: Exception) {
+                launchUI(strategy) {
+                    setupState.value = STATE_ERROR
+                    message = "Error refreshing channels"
+                }
                 Timber.e(ex, "Error refreshing channels")
             }
         }
@@ -330,8 +338,8 @@ class AuthenticationPresenter @Inject constructor(
             try {
                 val room = dbManager.getRoomByName(roomId)
                 if (room != null) {
-                    Timber.d("authState: Ready")
-                    authState.value = STATE_READY
+                    Timber.d("setupState: Ready")
+                    setupState.value = STATE_READY
                 } else {
                     //create new one
                     Timber.e("Creating new Channel")
@@ -339,11 +347,27 @@ class AuthenticationPresenter @Inject constructor(
                             roomName, ArrayList(), false)
                 }
             } catch (ex: Exception) {
-                authState.value = STATE_ERROR
+                setupState.value = STATE_ERROR
+                message = "Generic Error Message"
                 Timber.e(ex, "Error loading channel")
-                view.showGenericErrorMessage()
             }
         }
+    }
+
+    private fun createChannel(
+            roomType: RoomType,
+            channelName: String,
+            usersList: List<String>,
+            readOnly: Boolean
+    ) {
+        launchUI(strategy) {
+            client.createChannel(roomType, channelName, usersList, readOnly)
+            toChatRoom()
+        }
+    }
+
+    internal fun logout() {
+        logout(null)
     }
 
     fun loadChatRoom() {
@@ -353,11 +377,12 @@ class AuthenticationPresenter @Inject constructor(
                 if (room != null) {
                     loadChatRoom(room.chatRoom, true)
                 } else {
+
                     Timber.e("Error loading channel")
                 }
             } catch (ex: Exception) {
                 Timber.e(ex, "Error loading channel")
-                view.showGenericErrorMessage()
+//                view.showGenericErrorMessage()
             }
         }
     }
@@ -374,8 +399,8 @@ class AuthenticationPresenter @Inject constructor(
                     }
             val myself = getCurrentUser()
             if (myself?.username == null) {
-                authState.value = STATE_ERROR
-                view.showMessage(R.string.msg_generic_error)
+                setupState.value = STATE_ERROR
+                message = "Generic Error Message"
             } else {
                 navigator.toChatRoom(
                         chatRoomId = id,
@@ -413,32 +438,4 @@ class AuthenticationPresenter @Inject constructor(
         return null
     }
 
-    private fun createChannel(
-            roomType: RoomType,
-            channelName: String,
-            usersList: List<String>,
-            readOnly: Boolean
-    ) {
-        launchUI(strategy) {
-            view.showLoading()
-            try {
-                client.createChannel(roomType, channelName, usersList, readOnly)
-                toChatRoom()
-            } catch (exception: RocketChatException) {
-                authState.value = STATE_ERROR
-                exception.message?.let {
-                    view.showMessage(it)
-                }.ifNull {
-                    view.showGenericErrorMessage()
-                }
-            } finally {
-                view.hideLoading()
-            }
-        }
-    }
-
-    internal fun logout() {
-        logout(null)
-        authState.value = STATE_LOADING
-    }
 }

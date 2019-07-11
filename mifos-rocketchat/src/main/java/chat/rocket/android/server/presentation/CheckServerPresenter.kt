@@ -165,6 +165,44 @@ abstract class CheckServerPresenter constructor(
         }
     }
 
+    internal suspend fun checkServerInfoSuspended(serverUrl: String): Boolean {
+        var result = false
+        try {
+            currentServer = serverUrl
+            val serverInfo = retryIO(description = "serverInfo", times = 5) {
+                client.serverInfo()
+            }
+            if (serverInfo.redirected) {
+                versionCheckView?.updateServerUrl(serverInfo.url)
+            }
+            val version = checkServerVersion(serverInfo)
+            when (version) {
+                is Version.VersionOk -> {
+                    Timber.i("Your version is nice! (Requires: 0.62.0, Yours: ${version.version})")
+                    versionCheckView?.versionOk()
+                    result = true
+                }
+                is Version.RecommendedVersionWarning -> {
+                    Timber.i("Your server ${version.version} is bellow recommended version ${BuildConfig.RECOMMENDED_SERVER_VERSION}")
+                    versionCheckView?.alertNotRecommendedVersion()
+
+                }
+                is Version.OutOfDateError -> {
+                    Timber.i("Oops. Looks like your server ${version.version} is out-of-date! Minimum server version required ${BuildConfig.REQUIRED_SERVER_VERSION}!")
+                    versionCheckView?.blockAndAlertNotRequiredVersion()
+                }
+            }
+        } catch (ex: Exception) {
+            result = false
+            Timber.d(ex, "Error getting server info")
+            when (ex) {
+                is RocketChatInvalidProtocolException -> versionCheckView?.errorInvalidProtocol()
+                else -> versionCheckView?.errorCheckingServerVersion()
+            }
+        }
+        return result
+    }
+
     internal suspend fun checkEnabledAccounts(serverUrl: String) {
         try {
             val services = retryIO("settingsOauth()") {

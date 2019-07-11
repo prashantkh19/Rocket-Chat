@@ -1,7 +1,7 @@
 package chat.rocket.android.authentication.presentation
 
-import chat.rocket.android.authentication.server.presentation.ServerView
+import chat.rocket.android.authentication.server.presentation.VersionCheckView
 
-interface RocketChatView : ServerView {
+interface RocketChatView : VersionCheckView {
     fun saveSmartLockCredentials(usernameOrEmail: String, password: String)
 }

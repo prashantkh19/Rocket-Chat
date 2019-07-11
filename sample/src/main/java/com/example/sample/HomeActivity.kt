@@ -52,7 +52,7 @@ class HomeActivity : AppCompatActivity(), RocketChatView {
                     if (it == STATE_READY)
                         button_support.isEnabled = true
                     else if (it == STATE_ERROR)
-                        showMessage("Couldn't load")
+                        showToast("Couldn't load")
                 }
         )
 
@@ -67,41 +67,42 @@ class HomeActivity : AppCompatActivity(), RocketChatView {
         currentFragment?.onActivityResult(requestCode, resultCode, data)
     }
 
-    override fun showInvalidServerUrlMessage() {
-        showMessage(getString(R.string.msg_invalid_server_url))
-    }
-
-    override fun showMessage(resId: Int) {
-        showToast(resId)
-    }
-
-    override fun showMessage(message: String) {
-        showToast(message)
-    }
-
-    override fun showGenericErrorMessage() {
-        showMessage(getString(R.string.msg_generic_error))
-    }
-
-    override fun showLoading() {
-//        view_loading.isVisible = true
-    }
-
-    override fun hideLoading() {
-//        view_loading.isVisible = false
-    }
+//    override fun showInvalidServerUrlMessage() {
+//        showMessage(getString(R.string.msg_invalid_server_url))
+//    }
+//
+//    override fun showMessage(resId: Int) {
+//        showToast(resId)
+//    }
+//
+//    override fun showMessage(message: String) {
+//        showToast(message)
+//    }
+//
+//    override fun showGenericErrorMessage() {
+//        showMessage(getString(R.string.msg_generic_error))
+//    }
+//
+//    override fun showLoading() {
+////        view_loading.isVisible = true
+//    }
+//
+//    override fun hideLoading() {
+////        view_loading.isVisible = false
+//    }
 
     override fun alertNotRecommendedVersion() {
-        showMessage("Alert Not Recommended Version")
+//        showMessage("Alert Not Recommended Version")
     }
 
+    //
     override fun blockAndAlertNotRequiredVersion() {
-        showMessage("Block and Alert Not Required Version")
+//        showMessage("Block and Alert Not Required Version")
     }
 
-    override fun versionOk() {
-        rocketChat.performConnect()
-    }
+//    override fun versionOk() {
+//        rocketChat.performConnect()
+//    }
 
     override fun saveSmartLockCredentials(usernameOrEmail: String, password: String) {
         saveCredentials(usernameOrEmail, password)

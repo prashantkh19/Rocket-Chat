@@ -36,7 +36,7 @@ import timber.log.Timber
 import java.lang.ref.WeakReference
 import javax.inject.Inject
 
-open class RocketChatApplication(val application: Application) {
+open class RocketChatInitializer(val application: Application) {
 
     @Inject
     internal lateinit var appLifecycleObserver: AppLifecycleObserver
@@ -156,7 +156,7 @@ open class RocketChatApplication(val application: Application) {
             return context?.get()
         }
 
-        fun instance(application: Application) = RocketChatApplication(application)
+        fun instance(application: Application) = RocketChatInitializer(application)
     }
 
     // TODO - FIXME - This is a big Workaround
